@@ -1,0 +1,26 @@
+{
+  "name": "volia",
+  "version": "0.1.0",
+  "description": "Volunteers Liaison smart contracts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Granfalloner/VoLia.git"
+  },
+  "keywords": [
+    "VoLia",
+    "volunteer",
+    "liaison",
+    "donate",
+    "crypto"
+  ],
+  "author": "VoLia team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Granfalloner/VoLia/issues"
+  },
+  "homepage": "https://github.com/Granfalloner/VoLia#readme"
+}
