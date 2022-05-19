@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '../components/Header';
 
 const stripeStyles = {
-  backgroundImage: 'url("/bg.png")',
+  backgroundImage: 'url("/bg2.png")',
   minHeight: '265px',
 };
 
