@@ -2,9 +2,10 @@ import React from 'react';
 
 const Header = (props) => {
   return (
-    <div className="navbar bg-base-100">
+    <div className="navbar bg-white">
       <div class="navbar-start">
         <a className="btn btn-ghost normal-case text-xl">Volia</a>
+        
       </div>
       <div className="navbar-end">
         <a className="btn">Connect Wallet</a>

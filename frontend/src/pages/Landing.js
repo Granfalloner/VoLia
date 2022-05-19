@@ -5,7 +5,7 @@ const Landing = (props) => {
   return (
     <div className="">
       <Header />
-      <button className="btn primary">Landing</button>
+      <button className="btn btn-primary">Landing</button>
     </div>
   );
 };
