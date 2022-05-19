@@ -11,7 +11,7 @@ const Banner = () => (
     
     <h1 className="text-3xl pt-20"><b>Vol</b>unteers’ <b>Lia</b>ison — Make it regular</h1>
 
-    <p className="max-w-2xl mt-5">Provide volunteers with regular CRYPTO donation. Your donation will be immediately received by volunteer.</p>
+    <div className="max-w-2xl mt-5 m-auto">Provide volunteers with regular CRYPTO donation. Your donation will be immediately received by volunteer.</div>
 
   </div>
 )
