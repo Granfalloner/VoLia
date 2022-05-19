@@ -21,7 +21,7 @@ contract TrustedSubscription is Ownable {
     address donator;
   }
 
-  struct TokenSubsGroup {
+  struct SubscriptionGroup {
     Subscription[] subscriptions;
     mapping(address => uint256) subscriptionIndices;
   }
@@ -33,8 +33,8 @@ contract TrustedSubscription is Ownable {
     address claimAddress;
     uint40 lastClaimDate;
     Tier[] tiers;
-    uint256[] tokenIds;
-    mapping(uint256 => TokenSubsGroup) tokenSubsGroups;
+    uint32[] activeTokenIds;
+    mapping(uint256 => SubscriptionGroup) tokenSubsGroups;
   }
 
   struct SubscriptionDetails {
@@ -120,9 +120,9 @@ contract TrustedSubscription is Ownable {
       project.lastClaimDate = uint40(block.timestamp);
     }
 
-    addTokenIdIfNeeded(project.tokenIds, tier.tokenId);
+    addTokenIdIfNeeded(project.activeTokenIds, tier.tokenId);
 
-    TokenSubsGroup storage subsGroup = project.tokenSubsGroups[tier.tokenId];
+    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tier.tokenId];
     Subscription memory newSub = Subscription({tierIndex: tierIndex, donator: msg.sender});
 
     subsGroup.subscriptions.push(newSub);
@@ -138,7 +138,7 @@ contract TrustedSubscription is Ownable {
   function unsubscribe(uint256 projectId, address donator, uint32 tokenId) public {
     require(msg.sender == donator || msg.sender == owner(), 'Not authorized to unsubscribe');
 
-    TokenSubsGroup storage subsGroup = projects[projectId].tokenSubsGroups[tokenId];
+    SubscriptionGroup storage subsGroup = projects[projectId].tokenSubsGroups[tokenId];
 
     uint256 totalGroupSubs = subsGroup.subscriptions.length;
     uint256 index = subsGroup.subscriptionIndices[donator];
@@ -150,7 +150,7 @@ contract TrustedSubscription is Ownable {
     subsGroup.subscriptions.pop();
 
     if (totalGroupSubs == 1) {
-      removeTokenId(projects[projectId].tokenIds, tokenId);
+      removeTokenId(projects[projectId].activeTokenIds, tokenId);
     }
 
     delete subsGroup.subscriptionIndices[donator];
@@ -159,15 +159,23 @@ contract TrustedSubscription is Ownable {
     emit Unsubscribed(projectId, donator, block.timestamp);
   }
 
+  function claim(uint256 projectId) public {
+    uint32[] storage activeTokenIds = projects[projectId].activeTokenIds;
+
+    for (uint256 i; i < activeTokenIds.length; ++i) {
+      claim(projectId, activeTokenIds[i]);
+    }
+  }
+
   function claim(uint256 projectId, uint32 tokenId) public {
     Project storage project = projects[projectId];
-    TokenSubsGroup storage subsGroup = project.tokenSubsGroups[tokenId];
+    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tokenId];
     claimIn(projectId, tokenId, 0, subsGroup.subscriptions.length);
   }
 
   function claimIn(uint256 projectId, uint32 tokenId, uint256 start, uint256 end) public {
     Project storage project = projects[projectId];
-    TokenSubsGroup storage subsGroup = project.tokenSubsGroups[tokenId];
+    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tokenId];
 
     require(project.isActive, 'Project is not active'); 
     require(project.claimAddress != address(0), 'Claim address is zero');
@@ -218,23 +226,23 @@ contract TrustedSubscription is Ownable {
     }
   }
 
-  function addTokenIdIfNeeded(uint256[] storage tokenIds, uint32 tokenId) internal {
-      for (uint256 i; i < tokenIds.length; ++i) {
-        if (tokenId == tokenIds[i]) {
+  function addTokenIdIfNeeded(uint32[] storage activeTokenIds, uint32 tokenId) internal {
+      for (uint256 i; i < activeTokenIds.length; ++i) {
+        if (tokenId == activeTokenIds[i]) {
           return;
         }
       }
 
-      tokenIds.push(tokenId);
+      activeTokenIds.push(tokenId);
   }
 
-  function removeTokenId(uint256[] storage tokenIds, uint32 tokenId) internal {
-    uint256 length = tokenIds.length;
+  function removeTokenId(uint32[] storage activeTokenIds, uint32 tokenId) internal {
+    uint256 length = activeTokenIds.length;
 
     for (uint256 i; i < length; ++i) {
-      if (tokenId == tokenIds[i]) {
-        tokenIds[i] = tokenIds[length - 1];
-        tokenIds.pop();
+      if (tokenId == activeTokenIds[i]) {
+        activeTokenIds[i] = activeTokenIds[length - 1];
+        activeTokenIds.pop();
         break;
       }
     }
