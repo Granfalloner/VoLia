@@ -1,10 +1,9 @@
 import React from 'react';
+import Landing from './pages/Landing'
 
 const App = (props) => {
   return (
-    <div>
-      <button className="btn">Hello daisyUI</button>
-    </div>
+    <Landing />
   );
 };
 export default App;
