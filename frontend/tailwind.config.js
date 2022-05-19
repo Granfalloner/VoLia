@@ -5,7 +5,7 @@ module.exports = {
       {
         mytheme: {
           neutral: '#7C3AED',
-          'base-100': '#E5E5E5',
+          'base-100': '#FBFBFF',
         },
       },
     ],
