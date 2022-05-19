@@ -22,5 +22,11 @@
   "bugs": {
     "url": "https://github.com/Granfalloner/VoLia/issues"
   },
-  "homepage": "https://github.com/Granfalloner/VoLia#readme"
+  "homepage": "https://github.com/Granfalloner/VoLia#readme",
+  "devDependencies": {
+    "hardhat": "^2.9.5"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.6.0"
+  }
 }
