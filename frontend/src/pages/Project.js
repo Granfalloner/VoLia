@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import projectsData from '../projects-data';
 import { useParams } from 'react-router-dom';
+import { initWallet } from '../crypto.js';
 
 const Tier = ({ name, amount, currency, period }) => (
   <div className="card card-normal m-w-60 w-60 bg-base-100 shadow-xl flex-auto max-h-96 m-auto ">
@@ -23,12 +24,19 @@ const Tier = ({ name, amount, currency, period }) => (
 const Project = (props) => {
   const { projectID } = useParams();
   const { title, description, tiers } = projectsData[projectID];
+
+  const [address, setAddress] = useState(undefined);
+  const onConnectWallet = async () => {
+    const address = await initWallet();
+    setAddress(address);
+  };
+
   return (
     <div>
-      <Header />
+      <Header address={address} connectWallet={onConnectWallet} />
       <div style={{ maxWidth: '1000px' }} className="m-auto">
         <div
-          className="rounded-lg bg-white h-64 p-12 mt-8 m-auto"
+          className="rounded-lg bg-white mh-64 p-12 mt-8 m-auto"
           style={{
             backgroundImage: 'url("/projectBG.png")',
             backgroundRepeat: 'no-repeat',
@@ -37,7 +45,7 @@ const Project = (props) => {
           }}
         >
           <div className="font-bold text-lg">{title}</div>
-          <div>{description}</div>
+          <div className="mt-4">{description}</div>
         </div>
         <h3 className="mt-8 mb-2 text-xl text-center font-bold">
           Select a membership level

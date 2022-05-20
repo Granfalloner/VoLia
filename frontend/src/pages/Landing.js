@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import projectsData from '../projects-data';
+import { initWallet } from '../crypto.js';
 
 const stripeStyles = {
   backgroundImage: 'url("/bg2.png")',
@@ -35,9 +36,16 @@ const Project = ({ title, description, projectID }) => (
 );
 
 const Landing = (props) => {
+  const [address, setAddress] = useState(undefined);
+
+  const onConnectWallet = async () => {
+    const address = await initWallet();
+    setAddress(address);
+  };
+
   return (
     <div>
-      <Header />
+      <Header address={address} connectWallet={onConnectWallet} />
       <Banner />
       <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {projectsData.map(({ title, description }, index) => (

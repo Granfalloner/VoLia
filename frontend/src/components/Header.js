@@ -1,7 +1,8 @@
 import React from 'react';
 import Logo from './logo.png';
 
-const Header = (props) => {
+const Header = ({ connectWallet, address }) => {
+  if (address) return null;
   return (
     <div className="navbar bg-white">
       <div className="navbar-start">
@@ -10,7 +11,9 @@ const Header = (props) => {
         </a>
       </div>
       <div className="navbar-end">
-        <a className="btn">Connect Wallet</a>
+        <button className="btn" onClick={connectWallet}>
+          Connect Wallet
+        </button>
       </div>
     </div>
   );
