@@ -4,7 +4,7 @@ import projectsData from '../projects-data';
 import { useParams } from 'react-router-dom';
 
 const stripeStyles = {
-  backgroundImage: 'url("/bg2.png")',
+  backgroundImage: 'url("/projectBG.png")',
   minHeight: '265px',
 };
 
