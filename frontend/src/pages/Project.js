@@ -14,7 +14,16 @@ const Project = (props) => {
   return (
     <div>
       <Header />
-      <div className="text-center">Project: {title}</div>
+      <div
+        className="text-center rounded-lg bg-white h-64 mt-8 m-auto"
+        style={{
+          maxWidth: '1000px',
+          backgroundImage: 'url("/bg2.png")',
+          backgroundPosition: '0px -50px 0px 0px',
+        }}
+      >
+        Project: {title}
+      </div>
     </div>
   );
 };
