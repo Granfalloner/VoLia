@@ -25,7 +25,9 @@ const Project = ({ title, description, projectID }) => (
       <h2 className="card-title">{title}</h2>
       <p className="line-clamp-3">{description}</p>
       <div className="card-actions justify-end">
-        <a href={`/project/${projectID}`}>Donate Now</a>
+        <a className="btn btn-link" href={`/project/${projectID}`}>
+          Donate Now
+        </a>
       </div>
     </div>
   </div>
