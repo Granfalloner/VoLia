@@ -1,14 +1,19 @@
 import React from 'react';
+import Logo from './logo.png';
 
-const Header = (props) => {
+const Header = ({ connectWallet, address }) => {
+  if (address) return null;
   return (
     <div className="navbar bg-white">
-      <div class="navbar-start">
-        <a className="btn btn-ghost normal-case text-xl"><img src={`${process.env.PUBLIC_URL}/logo.png`} /></a>
-        
+      <div className="navbar-start">
+        <a className="btn btn-ghost normal-case text-xl" href="/">
+          <img src={Logo} style={{ height: '36px' }} />
+        </a>
       </div>
       <div className="navbar-end">
-        <a className="btn">Connect Wallet</a>
+        <button className="btn" onClick={connectWallet}>
+          Connect Wallet
+        </button>
       </div>
     </div>
   );
