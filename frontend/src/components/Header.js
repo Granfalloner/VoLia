@@ -5,7 +5,7 @@ const Header = (props) => {
   return (
     <div className="navbar bg-white">
       <div className="navbar-start">
-        <a className="btn btn-ghost normal-case text-xl">
+        <a className="btn btn-ghost normal-case text-xl" href="/">
           <img src={Logo} style={{ height: '36px' }} />
         </a>
       </div>
