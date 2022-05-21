@@ -13,20 +13,21 @@ contract TrustedSubscription is Ownable {
   uint256 constant MAX_FAILED_CLAIMS = 3;
 
   uint32 projectCounter;
+  uint32 tokenCounter;
 
-  mapping(uint256 => Project) projects;
-  mapping(address => mapping(uint256 => SubscriptionDetails)) subscriptionDetails;
-  mapping(uint256 => Token) tokens;
+  mapping(uint256 => Project) public projects;
+  mapping(address => mapping(uint256 => SubscriptionDetails)) public subscriptionDetails;
+  mapping(uint256 => Token) public tokens;
 
   event Subscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
   event Unsubscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
+  event Claimed(uint256 indexed projectId, uint256 timestamp);
   event ClaimFailed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
 
   function registerProject(address claimAddress, Tier[] calldata tiers) public onlyOwner {
     uint32 projectId = ++projectCounter;
     Project storage project = projects[projectId];
 
-    require(project.claimAddress == address(0), 'Project already registered');
     require(claimAddress != address(0), 'Zero claim address');
 
     project.id = projectId;
@@ -35,11 +36,18 @@ contract TrustedSubscription is Ownable {
     project.claimAddress = claimAddress;
 
     for (uint256 i; i < tiers.length; ++i) {
-      project.tiers.push(tiers[i]);
+      Tier calldata tier = tiers[i];
+      require(tokens[tier.tokenId].isActive, 'Token is not active');
+      project.tiers.push(tier);
     }
   }
 
   function enableProject(uint256 projectId) public onlyOwner {
+    Project storage project = projects[projectId];
+    for (uint256 i; i < project.tiers.length; ++i) {
+      uint32 tokenId = project.tiers[i].tokenId;
+      require(tokens[tokenId].isActive, 'Token is not active');
+    }
     projects[projectId].isActive = true;
   }
 
@@ -52,7 +60,9 @@ contract TrustedSubscription is Ownable {
     require(project.isActive, 'Project is not active'); 
 
     for (uint256 i; i < newTiers.length; ++i) {
-      project.tiers.push(newTiers[i]);
+      Tier calldata tier = newTiers[i];
+      require(tokens[tier.tokenId].isActive, 'Token is not active');
+      project.tiers.push(tier);
     }
   }
 
@@ -61,7 +71,9 @@ contract TrustedSubscription is Ownable {
     require(project.isActive, 'Project is not active'); 
 
     for (uint256 i; i < tierIndices.length; ++i) {
-      project.tiers[tierIndices[i]].isActive = true;
+      Tier storage tier = project.tiers[tierIndices[i]];
+      require(tokens[tier.tokenId].isActive, 'Token is not active');
+      tier.isActive = true;
     }
   }
 
@@ -74,12 +86,35 @@ contract TrustedSubscription is Ownable {
     }
   }
 
+  function addTokens(address[] calldata contractAddresses) public onlyOwner {
+    for (uint256 i; i < contractAddresses.length; ++i) {
+      tokens[++tokenCounter] = Token({isActive: true, contractAddress: contractAddresses[i]});
+    }
+  }
+
+  function enableTokens(uint32[] calldata tokenIds) public onlyOwner {
+    for (uint256 i; i < tokenIds.length; ++i) {
+      uint256 tokenId = tokenIds[i];
+      require(tokenId < tokenCounter, 'Invalid token id');
+      tokens[tokenId].isActive = true;
+    }
+  }
+
+  function disableTokens(uint32[] calldata tokenIds) public onlyOwner {
+    for (uint256 i; i < tokenIds.length; ++i) {
+      uint256 tokenId = tokenIds[i];
+      require(tokenId < tokenCounter, 'Invalid token id');
+      tokens[tokenId].isActive = false;
+    }
+  }
+
   function subscribe(uint256 projectId, uint16 tierIndex) public {
     Project storage project = projects[projectId];
     Tier storage tier = project.tiers[tierIndex];
 
     require(project.isActive, 'Project is not active'); 
-    require(tier.isActive, 'Subscription tier is not active');
+    require(tier.isActive, 'Tier is not active');
+    require(tokens[tier.tokenId].isActive, 'Token is not active');
 
     if (project.lastClaimDate == 0) {
       project.lastClaimDate = uint40(block.timestamp);
@@ -130,45 +165,45 @@ contract TrustedSubscription is Ownable {
     for (uint256 i; i < activeTokens.length; ++i) {
       claim(projectId, activeTokens[i]);
     }
+
+    emit Claimed(projectId, block.timestamp);
   }
 
-  function claim(uint256 projectId, uint32 tokenId) public {
-    Project storage project = projects[projectId];
-    SubscriptionGroup storage subsGroup = project.tokenSubscriptions[tokenId];
-    claimIn(projectId, tokenId, 0, subsGroup.subscriptions.length);
+  function claim(uint256 projectId, uint32 tokenId) internal {
+    SubscriptionGroup storage tokenSubscriptions = projects[projectId].tokenSubscriptions[tokenId];
+    claimIn(projectId, tokenId, 0, tokenSubscriptions.subscriptions.length);
   }
 
-  function claimIn(uint256 projectId, uint32 tokenId, uint256 start, uint256 end) public {
+  function claimIn(uint256 projectId, uint32 tokenId, uint256 start, uint256 end) internal {
     Project storage project = projects[projectId];
-    SubscriptionGroup storage subsGroup = project.tokenSubscriptions[tokenId];
+    Subscription[] storage subscriptions = project.tokenSubscriptions[tokenId].subscriptions;
 
     require(project.isActive, 'Project is not active'); 
     require(project.claimAddress != address(0), 'Claim address is zero');
 
     uint256 totalAmount;
-    uint256 totalFee;
     IERC20 token = IERC20(tokens[tokenId].contractAddress);
 
     for (uint256 i = start; i < end; ++i) {
-      Subscription storage sub = subsGroup.subscriptions[i];
-      Tier storage tier = project.tiers[sub.tierIndex];
+      Subscription storage subscription = subscriptions[i];
+      Tier storage tier = project.tiers[subscription.tierIndex];
 
       uint256 chargeAmount = tier.amount * (block.timestamp - project.lastClaimDate) / tier.period;
-      uint256 fee = totalAmount * project.fee / MAX_FEE;
 
-      totalAmount += chargeAmount;
-      totalFee += fee;
-
-      try token.transferFrom(sub.donator, address(this), chargeAmount) returns (bool success) {
-        if (!success) {
-          failedClaim(project, sub.donator, tier);
+      try token.transferFrom(subscription.donator, address(this), chargeAmount) returns (bool success) {
+        if (success) {
+          totalAmount += chargeAmount;
+        } else {
+          failedClaim(project, subscription.donator, tier);
         }
       } catch {
-        failedClaim(project, sub.donator, tier);
+        failedClaim(project, subscription.donator, tier);
       }
     }
 
+    uint256 totalFee = totalAmount * project.fee / MAX_FEE;
     token.transferFrom(address(this), project.claimAddress, totalAmount - totalFee);
+
     project.lastClaimDate = uint40(block.timestamp);
   }
 
@@ -185,6 +220,7 @@ contract TrustedSubscription is Ownable {
 
       if (subDetails.isActive) {
         subDetails.isActive = false;
+        subDetails.failedClaimDate = uint40(block.timestamp);
       }
 
       emit ClaimFailed(project.id, donator, block.timestamp);
