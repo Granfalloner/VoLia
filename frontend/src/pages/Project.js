@@ -35,7 +35,7 @@ const Flow = ({open, setOpen, tier, wallet, token, contract, onConnectWallet}) =
       }
     }
     init();
-  }, [wallet, token, currency]);
+  }, [wallet, token, amount, currency]);
 
   const approveAllowance = async (amount) => {
       const decimals = await token.decimals();
@@ -81,7 +81,7 @@ const Flow = ({open, setOpen, tier, wallet, token, contract, onConnectWallet}) =
           </ul>
 
           <div className="mt-16 mb-6 text-center">
-          {step == 1 && (<button className="btn" onClick={() => {waitNextStep(onConnectWallet())}}>Connect Wallet</button>)}
+          {step == 1 && (<button className="btn" onClick={() => {onConnectWallet()}}>Connect Wallet</button>)}
           {step == 2 && (<button className="btn" onClick={() => {waitNextStep(approveAllowance(amount))}}>Approve Allowance</button>)}
           {step == 3 && (<button className="btn" onClick={() => {waitNextStep(subscribe(1, 1))}}>Subscribe ({amount} {currency} / {period})</button>)}
           </div>
