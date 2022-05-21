@@ -95,7 +95,7 @@ contract TrustedSubscription is Ownable {
   function enableTokens(uint32[] calldata tokenIds) public onlyOwner {
     for (uint256 i; i < tokenIds.length; ++i) {
       uint256 tokenId = tokenIds[i];
-      require(tokenId < tokenCounter, 'Invalid token id');
+      require(tokenId <= tokenCounter, 'Invalid token id');
       tokens[tokenId].isActive = true;
     }
   }
@@ -103,7 +103,7 @@ contract TrustedSubscription is Ownable {
   function disableTokens(uint32[] calldata tokenIds) public onlyOwner {
     for (uint256 i; i < tokenIds.length; ++i) {
       uint256 tokenId = tokenIds[i];
-      require(tokenId < tokenCounter, 'Invalid token id');
+      require(tokenId <= tokenCounter, 'Invalid token id');
       tokens[tokenId].isActive = false;
     }
   }
@@ -111,10 +111,12 @@ contract TrustedSubscription is Ownable {
   function subscribe(uint256 projectId, uint16 tierIndex) public {
     Project storage project = projects[projectId];
     Tier storage tier = project.tiers[tierIndex];
+    SubscriptionDetails storage details = subscriptionDetails[msg.sender][projectId];
 
     require(project.isActive, 'Project is not active'); 
     require(tier.isActive, 'Tier is not active');
     require(tokens[tier.tokenId].isActive, 'Token is not active');
+    require(details.startDate == 0, 'Already subscribed');
 
     if (project.lastClaimDate == 0) {
       project.lastClaimDate = uint40(block.timestamp);
@@ -128,17 +130,18 @@ contract TrustedSubscription is Ownable {
     tokenSubscriptions.subscriptions.push(newSubscription);
     tokenSubscriptions.subscriptionIndices[msg.sender] = tokenSubscriptions.subscriptions.length - 1;
     
-    SubscriptionDetails storage details = subscriptionDetails[msg.sender][projectId];
     details.isActive = true;
+    details.tokenId = tier.tokenId;
     details.startDate = uint40(block.timestamp);
 
     emit Subscribed(projectId, msg.sender, block.timestamp);
   }
 
-  function unsubscribe(uint256 projectId, address donator, uint32 tokenId) public {
+  function unsubscribe(uint256 projectId, address donator) public {
     require(msg.sender == donator || msg.sender == owner(), 'Not authorized to unsubscribe');
 
-    SubscriptionGroup storage tokenSubscriptions = projects[projectId].tokenSubscriptions[tokenId];
+    SubscriptionDetails storage details = subscriptionDetails[donator][projectId];
+    SubscriptionGroup storage tokenSubscriptions = projects[projectId].tokenSubscriptions[details.tokenId];
 
     uint256 totalTokenSubs = tokenSubscriptions.subscriptions.length;
     uint256 index = tokenSubscriptions.subscriptionIndices[donator];
@@ -150,7 +153,7 @@ contract TrustedSubscription is Ownable {
     tokenSubscriptions.subscriptions.pop();
 
     if (totalTokenSubs == 1) {
-      removeActiveToken(projects[projectId].activeTokens, tokenId);
+      removeActiveToken(projects[projectId].activeTokens, details.tokenId);
     }
 
     delete tokenSubscriptions.subscriptionIndices[donator];
@@ -160,12 +163,14 @@ contract TrustedSubscription is Ownable {
   }
 
   function claim(uint256 projectId) public {
-    uint32[] storage activeTokens = projects[projectId].activeTokens;
+    Project storage project = projects[projectId];
+    uint32[] storage activeTokens = project.activeTokens;
 
     for (uint256 i; i < activeTokens.length; ++i) {
       claim(projectId, activeTokens[i]);
     }
 
+    project.lastClaimDate = uint40(block.timestamp);
     emit Claimed(projectId, block.timestamp);
   }
 
@@ -203,10 +208,61 @@ contract TrustedSubscription is Ownable {
 
     uint256 totalFee = totalAmount * project.fee / MAX_FEE;
     token.transferFrom(address(this), project.claimAddress, totalAmount - totalFee);
-
-    project.lastClaimDate = uint40(block.timestamp);
   }
 
+  function getSubscriptionDetails(address donator, uint32 projectId) public view returns (SubscriptionDetails memory) {
+    require(donator != address(0), 'Invalid donator address');
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    return subscriptionDetails[donator][projectId];
+  }
+
+  function numberOfSubscribers(uint32 projectId) public view returns (uint256 result) {
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    Project storage project = projects[projectId];
+
+    for (uint256 i; i < project.activeTokens.length; ++i) {
+      uint32 tokenId = project.activeTokens[i];
+      result += numberOfSubscribersInToken(projectId, tokenId);
+    }
+  }
+
+  function numberOfSubscribersInToken(uint32 projectId, uint32 tokenId) public view returns (uint256) {
+    require(projectId <= projectCounter, 'Invalid project id');
+    require(tokenId <= tokenCounter, 'Invalid token id');
+
+    return projects[projectId].tokenSubscriptions[tokenId].subscriptions.length;
+  }
+
+  function claimableAmounts(uint32 projectId) public view returns (ClaimableAmount[] memory amounts) {
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    uint32[] storage activeTokens = projects[projectId].activeTokens;
+    amounts = new ClaimableAmount[](activeTokens.length);
+
+    for (uint256 i; i < activeTokens.length; ++i) {
+      amounts[i] = claimableAmountOfTokens(projectId, activeTokens[i]);
+    }
+
+    return amounts;
+  }
+
+  function claimableAmountOfTokens(uint32 projectId, uint32 tokenId) public view returns (ClaimableAmount memory result) {
+    require(projectId <= projectCounter, 'Invalid project id');
+    require(tokenId <= tokenCounter, 'Invalid token id');
+    
+    Project storage project = projects[projectId];
+    Subscription[] storage subscriptions = project.tokenSubscriptions[tokenId].subscriptions;
+
+    result.contractAddress = tokens[tokenId].contractAddress;
+
+    for (uint256 i = 0; i < subscriptions.length; ++i) {
+      Tier storage tier = project.tiers[subscriptions[i].tierIndex];
+      result.amount += uint96(tier.amount * (block.timestamp - project.lastClaimDate) / tier.period);
+    }
+  }
+  
   function failedClaim(Project storage project, address donator, Tier storage tier) internal {
     SubscriptionDetails storage subDetails = subscriptionDetails[donator][project.id];
 
@@ -214,7 +270,7 @@ contract TrustedSubscription is Ownable {
     uint256 allowance = token.allowance(donator, address(this));
 
     if (allowance < tier.amount || subDetails.failedClaims + 1 >= MAX_FAILED_CLAIMS) {
-      unsubscribe(project.id, donator, tier.tokenId);
+      unsubscribe(project.id, donator);
     } else {
       subDetails.failedClaims += 1;
 

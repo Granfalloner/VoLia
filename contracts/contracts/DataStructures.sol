@@ -32,6 +32,7 @@ struct Project {
 
 struct SubscriptionDetails {
   bool isActive;
+  uint32 tokenId;
   uint40 startDate;
   uint40 failedClaimDate;
   uint8 failedClaims;
@@ -39,5 +40,10 @@ struct SubscriptionDetails {
 
 struct Token {
   bool isActive;
+  address contractAddress;
+}
+
+struct ClaimableAmount {
+  uint96 amount;
   address contractAddress;
 }
