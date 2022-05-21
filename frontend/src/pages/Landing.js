@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import projectsData from '../projects-data';
-import { initWallet } from '../crypto.js';
+import * as Crypto from '../crypto.js';
 
 const stripeStyles = {
   backgroundImage: 'url("/bg2.png")',
@@ -39,10 +39,18 @@ const Landing = (props) => {
   const [address, setAddress] = useState(undefined);
 
   const onConnectWallet = async () => {
-    const address = await initWallet();
+    const address = await Crypto.initWallet();
     setAddress(address);
   };
 
+  useEffect(() => {
+    return Crypto.autoSaveWallet(setAddress);
+  }, []);
+
+  useEffect(() => {
+    Crypto.loadSavedWallet();
+  }, []);
+  
   return (
     <div>
       <Header address={address} connectWallet={onConnectWallet} />
