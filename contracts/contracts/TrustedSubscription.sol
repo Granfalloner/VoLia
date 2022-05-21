@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: MIT LICENSE
+
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./DataStructures.sol";
 
 contract TrustedSubscription is Ownable {
 
@@ -9,53 +12,15 @@ contract TrustedSubscription is Ownable {
   uint256 constant DEFAULT_FEE = 500; // 0.5%
   uint256 constant MAX_FAILED_CLAIMS = 3;
 
-  struct Tier {
-    bool isActive;
-    uint80 amount;
-    uint32 period;
-    uint32 tokenId;
-  }
+  uint32 projectCounter;
 
-  struct Subscription {
-    uint16 tierIndex;
-    address donator;
-  }
-
-  struct SubscriptionGroup {
-    Subscription[] subscriptions;
-    mapping(address => uint256) subscriptionIndices;
-  }
-
-  struct Project {
-    uint32 id;
-    bool isActive;
-    uint16 fee;
-    address claimAddress;
-    uint40 lastClaimDate;
-    Tier[] tiers;
-    uint32[] activeTokenIds;
-    mapping(uint256 => SubscriptionGroup) tokenSubsGroups;
-  }
-
-  struct SubscriptionDetails {
-    bool isActive;
-    uint40 startDate;
-    uint8 failedClaims;
-  }
-
-  struct TokenDetails {
-    address contractAddress;
-  }
+  mapping(uint256 => Project) projects;
+  mapping(address => mapping(uint256 => SubscriptionDetails)) subscriptionDetails;
+  mapping(uint256 => Token) tokens;
 
   event Subscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
   event Unsubscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
   event ClaimFailed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
-
-  uint32 projectCounter;
-
-  mapping(uint256 => Project) projects;
-  mapping(address => mapping(uint256 => SubscriptionDetails)) donators;
-  mapping(uint256 => TokenDetails) tokens;
 
   function registerProject(address claimAddress, Tier[] calldata tiers) public onlyOwner {
     uint32 projectId = ++projectCounter;
@@ -120,15 +85,15 @@ contract TrustedSubscription is Ownable {
       project.lastClaimDate = uint40(block.timestamp);
     }
 
-    addTokenIdIfNeeded(project.activeTokenIds, tier.tokenId);
+    addActiveToken(project.activeTokens, tier.tokenId);
 
-    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tier.tokenId];
-    Subscription memory newSub = Subscription({tierIndex: tierIndex, donator: msg.sender});
+    SubscriptionGroup storage tokenSubscriptions = project.tokenSubscriptions[tier.tokenId];
+    Subscription memory newSubscription = Subscription({tierIndex: tierIndex, donator: msg.sender});
 
-    subsGroup.subscriptions.push(newSub);
-    subsGroup.subscriptionIndices[msg.sender] = subsGroup.subscriptions.length - 1;
+    tokenSubscriptions.subscriptions.push(newSubscription);
+    tokenSubscriptions.subscriptionIndices[msg.sender] = tokenSubscriptions.subscriptions.length - 1;
     
-    SubscriptionDetails storage details = donators[msg.sender][projectId];
+    SubscriptionDetails storage details = subscriptionDetails[msg.sender][projectId];
     details.isActive = true;
     details.startDate = uint40(block.timestamp);
 
@@ -138,44 +103,44 @@ contract TrustedSubscription is Ownable {
   function unsubscribe(uint256 projectId, address donator, uint32 tokenId) public {
     require(msg.sender == donator || msg.sender == owner(), 'Not authorized to unsubscribe');
 
-    SubscriptionGroup storage subsGroup = projects[projectId].tokenSubsGroups[tokenId];
+    SubscriptionGroup storage tokenSubscriptions = projects[projectId].tokenSubscriptions[tokenId];
 
-    uint256 totalGroupSubs = subsGroup.subscriptions.length;
-    uint256 index = subsGroup.subscriptionIndices[donator];
+    uint256 totalTokenSubs = tokenSubscriptions.subscriptions.length;
+    uint256 index = tokenSubscriptions.subscriptionIndices[donator];
     
-    Subscription storage sub = subsGroup.subscriptions[index];
-    require(sub.donator == donator, 'Donator does not match');
+    Subscription storage subscription = tokenSubscriptions.subscriptions[index];
+    require(subscription.donator == donator, 'Donator does not match');
 
-    subsGroup.subscriptions[index] = subsGroup.subscriptions[totalGroupSubs - 1];
-    subsGroup.subscriptions.pop();
+    tokenSubscriptions.subscriptions[index] = tokenSubscriptions.subscriptions[totalTokenSubs - 1];
+    tokenSubscriptions.subscriptions.pop();
 
-    if (totalGroupSubs == 1) {
-      removeTokenId(projects[projectId].activeTokenIds, tokenId);
+    if (totalTokenSubs == 1) {
+      removeActiveToken(projects[projectId].activeTokens, tokenId);
     }
 
-    delete subsGroup.subscriptionIndices[donator];
-    delete donators[donator][projectId];
+    delete tokenSubscriptions.subscriptionIndices[donator];
+    delete subscriptionDetails[donator][projectId];
 
     emit Unsubscribed(projectId, donator, block.timestamp);
   }
 
   function claim(uint256 projectId) public {
-    uint32[] storage activeTokenIds = projects[projectId].activeTokenIds;
+    uint32[] storage activeTokens = projects[projectId].activeTokens;
 
-    for (uint256 i; i < activeTokenIds.length; ++i) {
-      claim(projectId, activeTokenIds[i]);
+    for (uint256 i; i < activeTokens.length; ++i) {
+      claim(projectId, activeTokens[i]);
     }
   }
 
   function claim(uint256 projectId, uint32 tokenId) public {
     Project storage project = projects[projectId];
-    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tokenId];
+    SubscriptionGroup storage subsGroup = project.tokenSubscriptions[tokenId];
     claimIn(projectId, tokenId, 0, subsGroup.subscriptions.length);
   }
 
   function claimIn(uint256 projectId, uint32 tokenId, uint256 start, uint256 end) public {
     Project storage project = projects[projectId];
-    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tokenId];
+    SubscriptionGroup storage subsGroup = project.tokenSubscriptions[tokenId];
 
     require(project.isActive, 'Project is not active'); 
     require(project.claimAddress != address(0), 'Claim address is zero');
@@ -208,7 +173,7 @@ contract TrustedSubscription is Ownable {
   }
 
   function failedClaim(Project storage project, address donator, Tier storage tier) internal {
-    SubscriptionDetails storage subDetails = donators[donator][project.id];
+    SubscriptionDetails storage subDetails = subscriptionDetails[donator][project.id];
 
     IERC20 token = IERC20(tokens[tier.tokenId].contractAddress);
     uint256 allowance = token.allowance(donator, address(this));
@@ -226,23 +191,23 @@ contract TrustedSubscription is Ownable {
     }
   }
 
-  function addTokenIdIfNeeded(uint32[] storage activeTokenIds, uint32 tokenId) internal {
-      for (uint256 i; i < activeTokenIds.length; ++i) {
-        if (tokenId == activeTokenIds[i]) {
+  function addActiveToken(uint32[] storage activeTokens, uint32 tokenId) internal {
+      for (uint256 i; i < activeTokens.length; ++i) {
+        if (tokenId == activeTokens[i]) {
           return;
         }
       }
 
-      activeTokenIds.push(tokenId);
+      activeTokens.push(tokenId);
   }
 
-  function removeTokenId(uint32[] storage activeTokenIds, uint32 tokenId) internal {
-    uint256 length = activeTokenIds.length;
+  function removeActiveToken(uint32[] storage activeTokens, uint32 tokenId) internal {
+    uint256 length = activeTokens.length;
 
     for (uint256 i; i < length; ++i) {
-      if (tokenId == activeTokenIds[i]) {
-        activeTokenIds[i] = activeTokenIds[length - 1];
-        activeTokenIds.pop();
+      if (tokenId == activeTokens[i]) {
+        activeTokens[i] = activeTokens[length - 1];
+        activeTokens.pop();
         break;
       }
     }
