@@ -41,7 +41,7 @@ const Flow = ({open, setOpen, tier, wallet, onConnectWallet}) => {
   }, [wallet]);
 
 
-  const async approveAllowance = () => {
+  const approveAllowance = async () => {
       const provider = new ethers.providers.Web3Provider(wallet.provider, 'any')
 
       const contract = new ethers.Contract(
