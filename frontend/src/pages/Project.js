@@ -3,54 +3,69 @@ import Header from '../components/Header';
 import projectsData from '../projects-data';
 import { useParams } from 'react-router-dom';
 import * as Crypto from '../crypto.js';
+import * as ethers from 'ethers';
+import ContractAbi from '../abi/ContractAbi.json';
+import ERC20Abi from '../abi/ERC20Abi.json';
 
+const ContractAddress = '0xD21b3Ff5798b876C0bD36C1294c2B937cA03C6C1';
+// const USDCAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const USDCAddress = '0xeb8f08a975Ab53E34D8a0330E0D34de942C95926';
 
-const approveABI = [
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "_spender",
-                "type": "address"
-            },
-            {
-                "name": "_value",
-                "type": "uint256"
-            }
-        ],
-        "name": "approve",
-        "outputs": [
-            {
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-]
+const MAX_PERIODS = 3;
 
-const Flow = ({open, setOpen, tier, wallet, onConnectWallet}) => {
+const Flow = ({open, setOpen, tier, wallet, token, contract, onConnectWallet}) => {
 
   const [step, setStep] = useState(1);
   const { name, amount, currency, period } = tier;
 
   useEffect(() => {
-    setStep(wallet ? 2 : 1)
-  }, [wallet]);
+    const init = async () => {
+      if (wallet) {
+        setStep(2)
 
+        if (token) {
+          const decimals = await token.decimals();
+          const allowance = await token.allowance(wallet.accounts[0].address, ContractAddress);
+          if (allowance >= amount * MAX_PERIODS * 10 ** decimals) {
+            setStep(3);
+          }
+        }
+      } else {
+        setStep(1);
+      }
+    }
+    init();
+  }, [wallet, token, currency]);
 
-  const approveAllowance = async () => {
-      const provider = new ethers.providers.Web3Provider(wallet.provider, 'any')
+  const approveAllowance = async (amount) => {
+      const decimals = await token.decimals();
+      const tx = await token.approve(ContractAddress, amount * 10 ** decimals);
+      return tx;
+  }
 
-      const contract = new ethers.Contract(
-        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        approveABI,
-        provider.getUncheckedSigner()
-      )
+  const subscribe = async (projectId, tierIndex) => {
+      const tx = await contract.subscribe(projectId, tierIndex);
+      return tx;
+  }
 
-      await contract.approv
+  const waitNextStep = async (promise) => {
+    try {
+      const tx = await promise;
+      setStep(step + 1);
+    } catch (error) {
+      alert(JSON.stringify(error));
+    }
+  }
+
+  const getStepClasses = (step, position) => {
+    let cls = "step";
+    if (step > position) {
+      cls += " step-primary";
+    }
+    if (step == position) {
+      cls += " step-secondary";
+    }
+    return cls;
   }
 
   return (
@@ -60,15 +75,15 @@ const Flow = ({open, setOpen, tier, wallet, onConnectWallet}) => {
         <h2 className="font-bold text-xl pb-6">{name} - {amount} {currency} / {period}</h2>
         <div>
           <ul className="steps">
-            <li className={"step " + (step > 1 ? "step-primary" : "")}>Connect Wallet</li>
-            <li className={"step " + (step > 2 ? "step-primary" : "")}>Approve Allowance</li>
-            <li className={"step " + (step > 3 ? "step-primary" : "")}>Subscribe</li>
+            <li className={getStepClasses(step, 1)}>Connect Wallet</li>
+            <li className={getStepClasses(step, 2)}>Approve Allowance</li>
+            <li className={getStepClasses(step, 3)}>Subscribe</li>
           </ul>
 
           <div className="mt-16 mb-6 text-center">
-          {step == 1 && (<button className="btn" onClick={onConnectWallet}>Connect Wallet</button>)}
-          {step == 2 && (<button className="btn">Approve Allowance</button>)}
-          {step == 3 && (<button className="btn">Subscribe ({amount} {currency} / {period})</button>)}
+          {step == 1 && (<button className="btn" onClick={() => {waitNextStep(onConnectWallet())}}>Connect Wallet</button>)}
+          {step == 2 && (<button className="btn" onClick={() => {waitNextStep(approveAllowance(amount))}}>Approve Allowance</button>)}
+          {step == 3 && (<button className="btn" onClick={() => {waitNextStep(subscribe(1, 1))}}>Subscribe ({amount} {currency} / {period})</button>)}
           </div>
         </div>
       </div>
@@ -76,11 +91,39 @@ const Flow = ({open, setOpen, tier, wallet, onConnectWallet}) => {
   )
 }
 
-const Tier = ({ tier, wallet, onConnectWallet }) => {
+const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
 
   const [open, setOpen] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [token, setToken] = useState(undefined);
+  const [contract, setContract] = useState(undefined);
 
   const { name, amount, currency, period } = tier;
+
+  useEffect(() => {
+    const init = async () => {
+      if (wallet) {
+        const provider = new ethers.providers.Web3Provider(wallet.provider, 'any');
+        const signer = provider.getUncheckedSigner();
+
+        const token = new ethers.Contract(USDCAddress, ERC20Abi, signer);
+        setToken(token);
+
+        const contract = new ethers.Contract(ContractAddress, ContractAbi, signer);
+        setContract(contract);
+      } else {
+        setToken(undefined);
+        setContract(undefined);
+      }
+    }
+    init();
+  }, [wallet]);
+
+  const unsubscribe = async () => {
+    const tx = await contract.unsubscribe(projectId, wallet.accounts[0].address, tier.tokenId);
+    alert(tx.hash);
+    return tx;
+  }
 
   return (
     <div className="card card-normal m-w-60 w-60 bg-base-100 shadow-xl flex-auto max-h-96 m-auto ">
@@ -93,17 +136,18 @@ const Tier = ({ tier, wallet, onConnectWallet }) => {
           {amount} {currency} / {period}
         </div>
         <div className="card-actions justify-center">
-          <button onClick={()=>{setOpen(true)}} className="btn w-100">Subscribe</button>
+          {!isSubscribed && <button onClick={()=>{setOpen(true)}} className="btn w-100">Subscribe</button>}
+          {isSubscribed && <button onClick={unsubscribe} className="btn btn-secondary w-100">Unsubscribe</button>}
         </div>
-        <Flow wallet={wallet} tier={tier} open={open} setOpen={setOpen} onConnectWallet={onConnectWallet} />
+        <Flow wallet={wallet} tier={tier} token={token} contract={contract} open={open} setOpen={setOpen} onConnectWallet={onConnectWallet} />
       </div>
     </div>
   );
 }
 
 const Project = (props) => {
-  const { projectID } = useParams();
-  const { title, description, tiers } = projectsData[projectID];
+  const { projectId } = useParams();
+  const { title, description, tiers } = projectsData.find(x => x.projectId == projectId);
 
   const [wallet, setWallet] = useState(undefined);
 
@@ -116,8 +160,6 @@ const Project = (props) => {
     Crypto.loadWallet();
     return Crypto.saveWalletOnChange(setWallet);
   }, []);
-
-  console.log(wallet)
 
   return (
     <div>
@@ -140,7 +182,7 @@ const Project = (props) => {
         </h3>
         <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier, index) => (
-            <Tier tier={tier} wallet={wallet} key={index} onConnectWallet={onConnectWallet} />
+            <Tier projectId={projectId} tier={tier} wallet={wallet} key={index} onConnectWallet={onConnectWallet} />
           ))}
         </div>
       </div>

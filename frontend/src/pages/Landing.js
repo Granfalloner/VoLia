@@ -21,13 +21,13 @@ const Banner = () => (
   </div>
 );
 
-const Project = ({ title, description, projectID }) => (
+const Project = ({ title, description, projectId }) => (
   <div className="card card-normal m-w-80 w-80 bg-base-100 shadow-xl flex-auto max-h-96 m-auto">
     <div className="card-body">
       <h2 className="card-title">{title}</h2>
       <p className="line-clamp-3">{description}</p>
       <div className="card-actions justify-end">
-        <a className="btn btn-link" href={`/project/${projectID}`}>
+        <a className="btn btn-link" href={`/project/${projectId}`}>
           Donate Now
         </a>
       </div>
@@ -53,12 +53,12 @@ const Landing = (props) => {
       <Header wallet={wallet} connectWallet={onConnectWallet} />
       <Banner />
       <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {projectsData.map(({ title, description }, index) => (
+        {projectsData.map(({ projectId, title, description }) => (
           <Project
-            projectID={index}
+            projectId={projectId}
             title={title}
             description={description}
-            key={index}
+            key={projectId}
           />
         ))}
       </div>

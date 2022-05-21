@@ -7,7 +7,7 @@ const App = (props) => {
   return (
     <Router>
       <Routes>
-        <Route exact path="/project/:projectID" element={<Project />} />
+        <Route exact path="/project/:projectId" element={<Project />} />
         <Route exact path="/" element={<Landing />} />
       </Routes>
     </Router>
