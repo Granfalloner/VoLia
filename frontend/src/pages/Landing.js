@@ -36,24 +36,21 @@ const Project = ({ title, description, projectID }) => (
 );
 
 const Landing = (props) => {
-  const [address, setAddress] = useState(undefined);
+  const [wallet, setWallet] = useState(undefined);
 
   const onConnectWallet = async () => {
-    const address = await Crypto.initWallet();
-    setAddress(address);
+    const wallet = await Crypto.connectWallet();
+    setWallet(wallet);
   };
 
   useEffect(() => {
-    return Crypto.autoSaveWallet(setAddress);
-  }, []);
-
-  useEffect(() => {
-    Crypto.loadSavedWallet();
+    Crypto.loadWallet();
+    return Crypto.saveWalletOnChange(setWallet);
   }, []);
   
   return (
     <div>
-      <Header address={address} connectWallet={onConnectWallet} />
+      <Header wallet={wallet} connectWallet={onConnectWallet} />
       <Banner />
       <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {projectsData.map(({ title, description }, index) => (

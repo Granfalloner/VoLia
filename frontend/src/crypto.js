@@ -23,11 +23,12 @@ const providersConfig = {
 const logo = `
 <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="36" height="36" rx="18" fill="#7C3AED"/>
-<mask id="mask0_2_148" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="36" height="36">
+<mask id="mask0_0_1" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="36" height="36">
 <rect width="36" height="36" rx="18" fill="white"/>
 </mask>
-<g mask="url(#mask0_2_148)">
+<g mask="url(#mask0_0_1)">
 </g>
+<path d="M18.6546 22.1914H18.7835L22.3402 9H26L20.5876 27H16.567L11 9H14.9433L18.6546 22.1914Z" fill="white"/>
 </svg>
 `;
 
@@ -59,33 +60,29 @@ export const onboard = Onboard({
   },
 });
 
-export async function initWallet() {
+export async function connectWallet() {
   const wallets = await onboard.connectWallet();
   return wallets[0];
 }
 
-export async function autoSaveWallet(callback) {
+export async function saveWalletOnChange(setWallet) {
   const walletsSub = onboard.state.select('wallets');
 
   const { unsubscribe } = walletsSub.subscribe(wallets => {
     const connectedWallets = wallets.map(({ label }) => label);
     window.localStorage.setItem('connectedWallets', JSON.stringify(connectedWallets));
-    callback?.(connectedWallets[0]);
+    setWallet(wallets[0]);
   });
 
   return unsubscribe;
 }
 
-export async function loadSavedWallet(silent = true) {
+export async function loadWallet() {
   const previouslyConnectedWallets = JSON.parse(window.localStorage.getItem('connectedWallets'));
 
   if (previouslyConnectedWallets && previouslyConnectedWallets[0]) { 
-    // Connect the most recently connected wallet (first in the array)
-    // return await onboard.connectWallet({ autoSelect: previouslyConnectedWallets[0] });
-    
-    // You can also auto connect "silently" and disable all onboard modals to avoid them flashing on page load
     return await onboard.connectWallet({
-      autoSelect: { label: previouslyConnectedWallets[0], disableModals: silent }
+      autoSelect: { label: previouslyConnectedWallets[0], disableModals: true }
     });
   }
 }
