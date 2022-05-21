@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: MIT LICENSE
+
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./DataStructures.sol";
 
 contract TrustedSubscription is Ownable {
 
@@ -9,59 +12,22 @@ contract TrustedSubscription is Ownable {
   uint256 constant DEFAULT_FEE = 500; // 0.5%
   uint256 constant MAX_FAILED_CLAIMS = 3;
 
-  struct Tier {
-    bool isActive;
-    uint80 amount;
-    uint32 period;
-    uint32 tokenId;
-  }
+  uint32 projectCounter;
+  uint32 tokenCounter;
 
-  struct Subscription {
-    uint16 tierIndex;
-    address donator;
-  }
-
-  struct SubscriptionGroup {
-    Subscription[] subscriptions;
-    mapping(address => uint256) subscriptionIndices;
-  }
-
-  struct Project {
-    uint32 id;
-    bool isActive;
-    uint16 fee;
-    address claimAddress;
-    uint40 lastClaimDate;
-    Tier[] tiers;
-    uint32[] activeTokenIds;
-    mapping(uint256 => SubscriptionGroup) tokenSubsGroups;
-  }
-
-  struct SubscriptionDetails {
-    bool isActive;
-    uint40 startDate;
-    uint8 failedClaims;
-  }
-
-  struct TokenDetails {
-    address contractAddress;
-  }
+  mapping(uint256 => Project) public projects;
+  mapping(address => mapping(uint256 => SubscriptionDetails)) public subscriptionDetails;
+  mapping(uint256 => Token) public tokens;
 
   event Subscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
   event Unsubscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
+  event Claimed(uint256 indexed projectId, uint256 timestamp);
   event ClaimFailed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
-
-  uint32 projectCounter;
-
-  mapping(uint256 => Project) projects;
-  mapping(address => mapping(uint256 => SubscriptionDetails)) donators;
-  mapping(uint256 => TokenDetails) tokens;
 
   function registerProject(address claimAddress, Tier[] calldata tiers) public onlyOwner {
     uint32 projectId = ++projectCounter;
     Project storage project = projects[projectId];
 
-    require(project.claimAddress == address(0), 'Project already registered');
     require(claimAddress != address(0), 'Zero claim address');
 
     project.id = projectId;
@@ -70,11 +36,18 @@ contract TrustedSubscription is Ownable {
     project.claimAddress = claimAddress;
 
     for (uint256 i; i < tiers.length; ++i) {
-      project.tiers.push(tiers[i]);
+      Tier calldata tier = tiers[i];
+      require(tokens[tier.tokenId].isActive, 'Token is not active');
+      project.tiers.push(tier);
     }
   }
 
   function enableProject(uint256 projectId) public onlyOwner {
+    Project storage project = projects[projectId];
+    for (uint256 i; i < project.tiers.length; ++i) {
+      uint32 tokenId = project.tiers[i].tokenId;
+      require(tokens[tokenId].isActive, 'Token is not active');
+    }
     projects[projectId].isActive = true;
   }
 
@@ -87,7 +60,9 @@ contract TrustedSubscription is Ownable {
     require(project.isActive, 'Project is not active'); 
 
     for (uint256 i; i < newTiers.length; ++i) {
-      project.tiers.push(newTiers[i]);
+      Tier calldata tier = newTiers[i];
+      require(tokens[tier.tokenId].isActive, 'Token is not active');
+      project.tiers.push(tier);
     }
   }
 
@@ -96,7 +71,9 @@ contract TrustedSubscription is Ownable {
     require(project.isActive, 'Project is not active'); 
 
     for (uint256 i; i < tierIndices.length; ++i) {
-      project.tiers[tierIndices[i]].isActive = true;
+      Tier storage tier = project.tiers[tierIndices[i]];
+      require(tokens[tier.tokenId].isActive, 'Token is not active');
+      tier.isActive = true;
     }
   }
 
@@ -109,140 +86,220 @@ contract TrustedSubscription is Ownable {
     }
   }
 
+  function addTokens(address[] calldata contractAddresses) public onlyOwner {
+    for (uint256 i; i < contractAddresses.length; ++i) {
+      tokens[++tokenCounter] = Token({isActive: true, contractAddress: contractAddresses[i]});
+    }
+  }
+
+  function enableTokens(uint32[] calldata tokenIds) public onlyOwner {
+    for (uint256 i; i < tokenIds.length; ++i) {
+      uint256 tokenId = tokenIds[i];
+      require(tokenId <= tokenCounter, 'Invalid token id');
+      tokens[tokenId].isActive = true;
+    }
+  }
+
+  function disableTokens(uint32[] calldata tokenIds) public onlyOwner {
+    for (uint256 i; i < tokenIds.length; ++i) {
+      uint256 tokenId = tokenIds[i];
+      require(tokenId <= tokenCounter, 'Invalid token id');
+      tokens[tokenId].isActive = false;
+    }
+  }
+
   function subscribe(uint256 projectId, uint16 tierIndex) public {
     Project storage project = projects[projectId];
     Tier storage tier = project.tiers[tierIndex];
+    SubscriptionDetails storage details = subscriptionDetails[msg.sender][projectId];
 
     require(project.isActive, 'Project is not active'); 
-    require(tier.isActive, 'Subscription tier is not active');
+    require(tier.isActive, 'Tier is not active');
+    require(tokens[tier.tokenId].isActive, 'Token is not active');
+    require(details.startDate == 0, 'Already subscribed');
 
     if (project.lastClaimDate == 0) {
       project.lastClaimDate = uint40(block.timestamp);
     }
 
-    addTokenIdIfNeeded(project.activeTokenIds, tier.tokenId);
+    addActiveToken(project.activeTokens, tier.tokenId);
 
-    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tier.tokenId];
-    Subscription memory newSub = Subscription({tierIndex: tierIndex, donator: msg.sender});
+    SubscriptionGroup storage tokenSubscriptions = project.tokenSubscriptions[tier.tokenId];
+    Subscription memory newSubscription = Subscription({tierIndex: tierIndex, donator: msg.sender});
 
-    subsGroup.subscriptions.push(newSub);
-    subsGroup.subscriptionIndices[msg.sender] = subsGroup.subscriptions.length - 1;
+    tokenSubscriptions.subscriptions.push(newSubscription);
+    tokenSubscriptions.subscriptionIndices[msg.sender] = tokenSubscriptions.subscriptions.length - 1;
     
-    SubscriptionDetails storage details = donators[msg.sender][projectId];
     details.isActive = true;
+    details.tokenId = tier.tokenId;
     details.startDate = uint40(block.timestamp);
 
     emit Subscribed(projectId, msg.sender, block.timestamp);
   }
 
-  function unsubscribe(uint256 projectId, address donator, uint32 tokenId) public {
+  function unsubscribe(uint256 projectId, address donator) public {
     require(msg.sender == donator || msg.sender == owner(), 'Not authorized to unsubscribe');
 
-    SubscriptionGroup storage subsGroup = projects[projectId].tokenSubsGroups[tokenId];
+    SubscriptionDetails storage details = subscriptionDetails[donator][projectId];
+    SubscriptionGroup storage tokenSubscriptions = projects[projectId].tokenSubscriptions[details.tokenId];
 
-    uint256 totalGroupSubs = subsGroup.subscriptions.length;
-    uint256 index = subsGroup.subscriptionIndices[donator];
+    uint256 totalTokenSubs = tokenSubscriptions.subscriptions.length;
+    uint256 index = tokenSubscriptions.subscriptionIndices[donator];
     
-    Subscription storage sub = subsGroup.subscriptions[index];
-    require(sub.donator == donator, 'Donator does not match');
+    Subscription storage subscription = tokenSubscriptions.subscriptions[index];
+    require(subscription.donator == donator, 'Donator does not match');
 
-    subsGroup.subscriptions[index] = subsGroup.subscriptions[totalGroupSubs - 1];
-    subsGroup.subscriptions.pop();
+    tokenSubscriptions.subscriptions[index] = tokenSubscriptions.subscriptions[totalTokenSubs - 1];
+    tokenSubscriptions.subscriptions.pop();
 
-    if (totalGroupSubs == 1) {
-      removeTokenId(projects[projectId].activeTokenIds, tokenId);
+    if (totalTokenSubs == 1) {
+      removeActiveToken(projects[projectId].activeTokens, details.tokenId);
     }
 
-    delete subsGroup.subscriptionIndices[donator];
-    delete donators[donator][projectId];
+    delete tokenSubscriptions.subscriptionIndices[donator];
+    delete subscriptionDetails[donator][projectId];
 
     emit Unsubscribed(projectId, donator, block.timestamp);
   }
 
   function claim(uint256 projectId) public {
-    uint32[] storage activeTokenIds = projects[projectId].activeTokenIds;
+    Project storage project = projects[projectId];
+    uint32[] storage activeTokens = project.activeTokens;
 
-    for (uint256 i; i < activeTokenIds.length; ++i) {
-      claim(projectId, activeTokenIds[i]);
+    for (uint256 i; i < activeTokens.length; ++i) {
+      claim(projectId, activeTokens[i]);
     }
+
+    project.lastClaimDate = uint40(block.timestamp);
+    emit Claimed(projectId, block.timestamp);
   }
 
-  function claim(uint256 projectId, uint32 tokenId) public {
-    Project storage project = projects[projectId];
-    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tokenId];
-    claimIn(projectId, tokenId, 0, subsGroup.subscriptions.length);
+  function claim(uint256 projectId, uint32 tokenId) internal {
+    SubscriptionGroup storage tokenSubscriptions = projects[projectId].tokenSubscriptions[tokenId];
+    claimIn(projectId, tokenId, 0, tokenSubscriptions.subscriptions.length);
   }
 
-  function claimIn(uint256 projectId, uint32 tokenId, uint256 start, uint256 end) public {
+  function claimIn(uint256 projectId, uint32 tokenId, uint256 start, uint256 end) internal {
     Project storage project = projects[projectId];
-    SubscriptionGroup storage subsGroup = project.tokenSubsGroups[tokenId];
+    Subscription[] storage subscriptions = project.tokenSubscriptions[tokenId].subscriptions;
 
     require(project.isActive, 'Project is not active'); 
     require(project.claimAddress != address(0), 'Claim address is zero');
 
     uint256 totalAmount;
-    uint256 totalFee;
     IERC20 token = IERC20(tokens[tokenId].contractAddress);
 
     for (uint256 i = start; i < end; ++i) {
-      Subscription storage sub = subsGroup.subscriptions[i];
-      Tier storage tier = project.tiers[sub.tierIndex];
+      Subscription storage subscription = subscriptions[i];
+      Tier storage tier = project.tiers[subscription.tierIndex];
 
       uint256 chargeAmount = tier.amount * (block.timestamp - project.lastClaimDate) / tier.period;
-      uint256 fee = totalAmount * project.fee / MAX_FEE;
 
-      totalAmount += chargeAmount;
-      totalFee += fee;
-
-      try token.transferFrom(sub.donator, address(this), chargeAmount) returns (bool success) {
-        if (!success) {
-          failedClaim(project, sub.donator, tier);
+      try token.transferFrom(subscription.donator, address(this), chargeAmount) returns (bool success) {
+        if (success) {
+          totalAmount += chargeAmount;
+        } else {
+          failedClaim(project, subscription.donator, tier);
         }
       } catch {
-        failedClaim(project, sub.donator, tier);
+        failedClaim(project, subscription.donator, tier);
       }
     }
 
+    uint256 totalFee = totalAmount * project.fee / MAX_FEE;
     token.transferFrom(address(this), project.claimAddress, totalAmount - totalFee);
-    project.lastClaimDate = uint40(block.timestamp);
   }
 
+  function getSubscriptionDetails(address donator, uint32 projectId) public view returns (SubscriptionDetails memory) {
+    require(donator != address(0), 'Invalid donator address');
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    return subscriptionDetails[donator][projectId];
+  }
+
+  function numberOfSubscribers(uint32 projectId) public view returns (uint256 result) {
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    Project storage project = projects[projectId];
+
+    for (uint256 i; i < project.activeTokens.length; ++i) {
+      uint32 tokenId = project.activeTokens[i];
+      result += numberOfSubscribersInToken(projectId, tokenId);
+    }
+  }
+
+  function numberOfSubscribersInToken(uint32 projectId, uint32 tokenId) public view returns (uint256) {
+    require(projectId <= projectCounter, 'Invalid project id');
+    require(tokenId <= tokenCounter, 'Invalid token id');
+
+    return projects[projectId].tokenSubscriptions[tokenId].subscriptions.length;
+  }
+
+  function claimableAmounts(uint32 projectId) public view returns (ClaimableAmount[] memory amounts) {
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    uint32[] storage activeTokens = projects[projectId].activeTokens;
+    amounts = new ClaimableAmount[](activeTokens.length);
+
+    for (uint256 i; i < activeTokens.length; ++i) {
+      amounts[i] = claimableAmountOfTokens(projectId, activeTokens[i]);
+    }
+
+    return amounts;
+  }
+
+  function claimableAmountOfTokens(uint32 projectId, uint32 tokenId) public view returns (ClaimableAmount memory result) {
+    require(projectId <= projectCounter, 'Invalid project id');
+    require(tokenId <= tokenCounter, 'Invalid token id');
+    
+    Project storage project = projects[projectId];
+    Subscription[] storage subscriptions = project.tokenSubscriptions[tokenId].subscriptions;
+
+    result.contractAddress = tokens[tokenId].contractAddress;
+
+    for (uint256 i = 0; i < subscriptions.length; ++i) {
+      Tier storage tier = project.tiers[subscriptions[i].tierIndex];
+      result.amount += uint96(tier.amount * (block.timestamp - project.lastClaimDate) / tier.period);
+    }
+  }
+  
   function failedClaim(Project storage project, address donator, Tier storage tier) internal {
-    SubscriptionDetails storage subDetails = donators[donator][project.id];
+    SubscriptionDetails storage subDetails = subscriptionDetails[donator][project.id];
 
     IERC20 token = IERC20(tokens[tier.tokenId].contractAddress);
     uint256 allowance = token.allowance(donator, address(this));
 
     if (allowance < tier.amount || subDetails.failedClaims + 1 >= MAX_FAILED_CLAIMS) {
-      unsubscribe(project.id, donator, tier.tokenId);
+      unsubscribe(project.id, donator);
     } else {
       subDetails.failedClaims += 1;
 
       if (subDetails.isActive) {
         subDetails.isActive = false;
+        subDetails.failedClaimDate = uint40(block.timestamp);
       }
 
       emit ClaimFailed(project.id, donator, block.timestamp);
     }
   }
 
-  function addTokenIdIfNeeded(uint32[] storage activeTokenIds, uint32 tokenId) internal {
-      for (uint256 i; i < activeTokenIds.length; ++i) {
-        if (tokenId == activeTokenIds[i]) {
+  function addActiveToken(uint32[] storage activeTokens, uint32 tokenId) internal {
+      for (uint256 i; i < activeTokens.length; ++i) {
+        if (tokenId == activeTokens[i]) {
           return;
         }
       }
 
-      activeTokenIds.push(tokenId);
+      activeTokens.push(tokenId);
   }
 
-  function removeTokenId(uint32[] storage activeTokenIds, uint32 tokenId) internal {
-    uint256 length = activeTokenIds.length;
+  function removeActiveToken(uint32[] storage activeTokens, uint32 tokenId) internal {
+    uint256 length = activeTokens.length;
 
     for (uint256 i; i < length; ++i) {
-      if (tokenId == activeTokenIds[i]) {
-        activeTokenIds[i] = activeTokenIds[length - 1];
-        activeTokenIds.pop();
+      if (tokenId == activeTokens[i]) {
+        activeTokens[i] = activeTokens[length - 1];
+        activeTokens.pop();
         break;
       }
     }

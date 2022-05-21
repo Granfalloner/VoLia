@@ -1,8 +1,7 @@
 import React from 'react';
 import Logo from './logo.png';
 
-const Header = ({ connectWallet, address }) => {
-  if (address) return null;
+const Header = ({ connectWallet, wallet }) => {
   return (
     <div className="navbar bg-white">
       <div className="navbar-start">
@@ -11,9 +10,7 @@ const Header = ({ connectWallet, address }) => {
         </a>
       </div>
       <div className="navbar-end">
-        <button className="btn" onClick={connectWallet}>
-          Connect Wallet
-        </button>
+        {!wallet && <button className="btn" onClick={connectWallet}>Connect Wallet</button>}
       </div>
     </div>
   );
