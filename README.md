@@ -3,5 +3,5 @@ Former name:
 Volunteers Liaison
 
 New pivot name: 
-SAMSARA 
-Samsara is recurring crypto payments.  
+**SAMSARA **
+is recurring crypto payments.  
