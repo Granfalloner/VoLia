@@ -6,7 +6,7 @@ function getTiers(projectId) {
       amount: 200,
       period: 'month',
       tokenId: 1,
-      tierIndex: (projectId - 1) * 3 + 0,
+      tierIndex: 0,
     },
     {
       name: 'Supporter Level 2',
@@ -14,7 +14,7 @@ function getTiers(projectId) {
       amount: 400,
       period: 'month',
       tokenId: 1,
-      tierIndex: (projectId - 1) * 3 + 1,
+      tierIndex: 1,
     },
     {
       name: 'Supporter Level 3',
@@ -22,7 +22,7 @@ function getTiers(projectId) {
       amount: 600,
       period: 'month',
       tokenId: 1,
-      tierIndex: (projectId - 1) * 3 + 2,
+      tierIndex: 2,
     },
   ];
 }

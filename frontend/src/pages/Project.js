@@ -244,6 +244,9 @@ const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
             🧍{numSubscribed} subscribers
           </p>
         )}
+        {numSubscribed == undefined && wallet && (
+          <p className="text-sm text-center mb-2">Loading..</p>
+        )}
         <div className="card-actions justify-center">
           {!isSubscribed && (
             <button
