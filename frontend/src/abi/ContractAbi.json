@@ -29,6 +29,25 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "uint256",
+        "name": "projectId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "Claimed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
         "type": "address"
@@ -95,35 +114,15 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" },
       {
         "components": [
-          {
-            "internalType": "bool",
-            "name": "isActive",
-            "type": "bool"
-          },
-          {
-            "internalType": "uint80",
-            "name": "amount",
-            "type": "uint80"
-          },
-          {
-            "internalType": "uint32",
-            "name": "period",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint32",
-            "name": "tokenId",
-            "type": "uint32"
-          }
+          { "internalType": "bool", "name": "isActive", "type": "bool" },
+          { "internalType": "uint80", "name": "amount", "type": "uint80" },
+          { "internalType": "uint32", "name": "period", "type": "uint32" },
+          { "internalType": "uint32", "name": "tokenId", "type": "uint32" }
         ],
-        "internalType": "struct TrustedSubscription.Tier[]",
+        "internalType": "struct Tier[]",
         "name": "newTiers",
         "type": "tuple[]"
       }
@@ -136,15 +135,19 @@
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "tokenId",
-        "type": "uint32"
+        "internalType": "address[]",
+        "name": "contractAddresses",
+        "type": "address[]"
       }
+    ],
+    "name": "addTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" }
     ],
     "name": "claim",
     "outputs": [],
@@ -153,52 +156,54 @@
   },
   {
     "inputs": [
+      { "internalType": "uint32", "name": "projectId", "type": "uint32" },
+      { "internalType": "uint32", "name": "tokenId", "type": "uint32" }
+    ],
+    "name": "claimableAmountOfTokens",
+    "outputs": [
       {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
+        "components": [
+          { "internalType": "uint96", "name": "amount", "type": "uint96" },
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ClaimableAmount",
+        "name": "result",
+        "type": "tuple"
       }
     ],
-    "name": "claim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
+      { "internalType": "uint32", "name": "projectId", "type": "uint32" }
+    ],
+    "name": "claimableAmounts",
+    "outputs": [
       {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "tokenId",
-        "type": "uint32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "start",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "end",
-        "type": "uint256"
+        "components": [
+          { "internalType": "uint96", "name": "amount", "type": "uint96" },
+          {
+            "internalType": "address",
+            "name": "contractAddress",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct ClaimableAmount[]",
+        "name": "amounts",
+        "type": "tuple[]"
       }
     ],
-    "name": "claimIn",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      }
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" }
     ],
     "name": "disableProject",
     "outputs": [],
@@ -207,11 +212,7 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" },
       {
         "internalType": "uint256[]",
         "name": "tierIndices",
@@ -225,11 +226,16 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      }
+      { "internalType": "uint32[]", "name": "tokenIds", "type": "uint32[]" }
+    ],
+    "name": "disableTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" }
     ],
     "name": "enableProject",
     "outputs": [],
@@ -238,11 +244,7 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" },
       {
         "internalType": "uint256[]",
         "name": "tierIndices",
@@ -255,13 +257,36 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "owner",
+    "inputs": [
+      { "internalType": "uint32[]", "name": "tokenIds", "type": "uint32[]" }
+    ],
+    "name": "enableTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "donator", "type": "address" },
+      { "internalType": "uint32", "name": "projectId", "type": "uint32" }
+    ],
+    "name": "getSubscriptionDetails",
     "outputs": [
       {
-        "internalType": "address",
+        "components": [
+          { "internalType": "bool", "name": "isActive", "type": "bool" },
+          { "internalType": "uint32", "name": "tokenId", "type": "uint32" },
+          { "internalType": "uint40", "name": "startDate", "type": "uint40" },
+          {
+            "internalType": "uint40",
+            "name": "failedClaimDate",
+            "type": "uint40"
+          },
+          { "internalType": "uint8", "name": "failedClaims", "type": "uint8" }
+        ],
+        "internalType": "struct SubscriptionDetails",
         "name": "",
-        "type": "address"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -269,35 +294,79 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "address",
-        "name": "claimAddress",
-        "type": "address"
-      },
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" },
+      { "internalType": "uint16", "name": "tierIndex", "type": "uint16" },
+      { "internalType": "address", "name": "donator", "type": "address" }
+    ],
+    "name": "isSubscribed",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "projectId", "type": "uint32" }
+    ],
+    "name": "numberOfSubscribers",
+    "outputs": [
+      { "internalType": "uint256", "name": "result", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "projectId", "type": "uint32" },
+      { "internalType": "uint32", "name": "tierIndex", "type": "uint32" }
+    ],
+    "name": "numberOfSubscribersInTier",
+    "outputs": [
+      { "internalType": "uint256", "name": "result", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "projectId", "type": "uint32" },
+      { "internalType": "uint32", "name": "tokenId", "type": "uint32" }
+    ],
+    "name": "numberOfSubscribersInToken",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "projects",
+    "outputs": [
+      { "internalType": "uint32", "name": "id", "type": "uint32" },
+      { "internalType": "bool", "name": "isActive", "type": "bool" },
+      { "internalType": "address", "name": "claimAddress", "type": "address" },
+      { "internalType": "uint40", "name": "lastClaimDate", "type": "uint40" },
+      { "internalType": "uint16", "name": "fee", "type": "uint16" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "claimAddress", "type": "address" },
       {
         "components": [
-          {
-            "internalType": "bool",
-            "name": "isActive",
-            "type": "bool"
-          },
-          {
-            "internalType": "uint80",
-            "name": "amount",
-            "type": "uint80"
-          },
-          {
-            "internalType": "uint32",
-            "name": "period",
-            "type": "uint32"
-          },
-          {
-            "internalType": "uint32",
-            "name": "tokenId",
-            "type": "uint32"
-          }
+          { "internalType": "bool", "name": "isActive", "type": "bool" },
+          { "internalType": "uint80", "name": "amount", "type": "uint80" },
+          { "internalType": "uint32", "name": "period", "type": "uint32" },
+          { "internalType": "uint32", "name": "tokenId", "type": "uint32" }
         ],
-        "internalType": "struct TrustedSubscription.Tier[]",
+        "internalType": "struct Tier[]",
         "name": "tiers",
         "type": "tuple[]"
       }
@@ -316,16 +385,8 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint16",
-        "name": "tierIndex",
-        "type": "uint16"
-      }
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" },
+      { "internalType": "uint16", "name": "tierIndex", "type": "uint16" }
     ],
     "name": "subscribe",
     "outputs": [],
@@ -334,11 +395,37 @@
   },
   {
     "inputs": [
+      { "internalType": "address", "name": "", "type": "address" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "name": "subscriptionDetails",
+    "outputs": [
+      { "internalType": "bool", "name": "isActive", "type": "bool" },
+      { "internalType": "uint32", "name": "tokenId", "type": "uint32" },
+      { "internalType": "uint40", "name": "startDate", "type": "uint40" },
+      { "internalType": "uint40", "name": "failedClaimDate", "type": "uint40" },
+      { "internalType": "uint8", "name": "failedClaims", "type": "uint8" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "name": "tokens",
+    "outputs": [
+      { "internalType": "bool", "name": "isActive", "type": "bool" },
       {
         "internalType": "address",
-        "name": "newOwner",
+        "name": "contractAddress",
         "type": "address"
       }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
     ],
     "name": "transferOwnership",
     "outputs": [],
@@ -347,21 +434,8 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "projectId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "donator",
-        "type": "address"
-      },
-      {
-        "internalType": "uint32",
-        "name": "tokenId",
-        "type": "uint32"
-      }
+      { "internalType": "uint256", "name": "projectId", "type": "uint256" },
+      { "internalType": "address", "name": "donator", "type": "address" }
     ],
     "name": "unsubscribe",
     "outputs": [],
