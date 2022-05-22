@@ -25,6 +25,14 @@ module.exports = {
     mainnet: {
         url: API_URL,
         accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
+    },
+    arbitrum_rinkeby: {
+        url: API_URL,
+        accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
+    },
+    mumbai: {
+        url: API_URL,
+        accounts: [`0x${DEPLOYER_PRIVATE_KEY}`]
     }
   },
   etherscan: {
