@@ -6,7 +6,7 @@ function getTiers(projectId) {
       amount: 200,
       period: 'month',
       tokenId: 1,
-      tierIndex: (projectId-1)*3 + 0,
+      tierIndex: (projectId - 1) * 3 + 0,
     },
     {
       name: 'Supporter Level 2',
@@ -14,7 +14,7 @@ function getTiers(projectId) {
       amount: 400,
       period: 'month',
       tokenId: 1,
-      tierIndex: (projectId-1)*3 + 1,
+      tierIndex: (projectId - 1) * 3 + 1,
     },
     {
       name: 'Supporter Level 3',
@@ -22,7 +22,7 @@ function getTiers(projectId) {
       amount: 600,
       period: 'month',
       tokenId: 1,
-      tierIndex: (projectId-1)*3 + 2,
+      tierIndex: (projectId - 1) * 3 + 2,
     },
   ];
 }
@@ -30,6 +30,7 @@ function getTiers(projectId) {
 const PROJECTS = [
   {
     projectId: 1,
+    image: '/projects/iryna mischenko.png',
     title: 'Iryna Mischenko',
     tiers: getTiers(1),
     description:
@@ -38,6 +39,7 @@ const PROJECTS = [
   {
     projectId: 2,
     title: 'Denys Koshelnik',
+    image: '/projects/Denys Koshelnik.jpg',
     tiers: getTiers(2),
     description:
       'We’re a team of 10 people, and we use our own cars (5) to help soldiers from Ukrainian army, ​​Territorial Defense Forces with needed equipments.',
@@ -45,6 +47,7 @@ const PROJECTS = [
   {
     projectId: 3,
     title: 'Anna Pavlovna',
+    image: '/projects/Anna Pavlovna.jpg',
     tiers: getTiers(3),
     description:
       'Our team also covering humanitarian aids, we’re helping children, elderlies and also protecting some ​​animal shelters in Kyiv and the cities nearby.',
