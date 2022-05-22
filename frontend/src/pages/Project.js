@@ -315,7 +315,7 @@ const Project = (props) => {
             backgroundImage: 'url("/projectBG.png")',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'top',
-            paddingTop: '50px',
+            paddingTop: '70px',
           }}
         >
           <div className="avatar">
@@ -323,8 +323,8 @@ const Project = (props) => {
               <img src={image} />
             </div>
           </div>
-          <div className="font-bold text-lg">{title}</div>
-          <div className="mt-4">{description}</div>
+          <div className="font-bold text-lg mt-2">{title}</div>
+          <div className="mt-16">{description}</div>
         </div>
         <h3 className="mt-8 mb-2 text-xl text-center font-bold">
           Select a membership level
