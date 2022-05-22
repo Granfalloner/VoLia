@@ -289,7 +289,7 @@ const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
 
 const Project = (props) => {
   const { projectId } = useParams();
-  const { title, description, tiers } = projectsData.find(
+  const { title, description, tiers, image } = projectsData.find(
     (x) => x.projectId == projectId
   );
 
@@ -315,9 +315,14 @@ const Project = (props) => {
             backgroundImage: 'url("/projectBG.png")',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'top',
-            paddingTop: '150px',
+            paddingTop: '50px',
           }}
         >
+          <div className="avatar">
+            <div className="w-28 rounded">
+              <img src={image} />
+            </div>
+          </div>
           <div className="font-bold text-lg">{title}</div>
           <div className="mt-4">{description}</div>
         </div>
