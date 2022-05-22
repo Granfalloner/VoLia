@@ -1,24 +1,27 @@
 import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
+import coinbaseWalletModule from '@web3-onboard/coinbase';
+import gnosisModule from '@web3-onboard/gnosis';
+import walletConnectModule from '@web3-onboard/walletconnect';
 
 const injected = injectedModule();
 
 const provider = 'alchemy';
 const providersConfig = {
-  'alchemy': {
-    'mainnet': {
-      'URL': 'https://eth-mainnet.alchemyapi.io/v2/z-hCypDgxvXYoS4UI2MDwybCGhCmXUdS'
+  alchemy: {
+    mainnet: {
+      URL: 'https://eth-mainnet.alchemyapi.io/v2/z-hCypDgxvXYoS4UI2MDwybCGhCmXUdS',
     },
-    'rinkeby': {
-      'URL': 'https://eth-rinkeby.alchemyapi.io/v2/C2rgLGUYKWj4ygGCRP4UjHQP2QeoXCep'
+    rinkeby: {
+      URL: 'https://eth-rinkeby.alchemyapi.io/v2/C2rgLGUYKWj4ygGCRP4UjHQP2QeoXCep',
     },
   },
-  'infura': {
-    'mainnet': {
-      'URL': 'https://mainnet.infura.io/v3/f166e893a30a4b8a9d7f41de03112fa8'
-    }
-  }
-}
+  infura: {
+    mainnet: {
+      URL: 'https://mainnet.infura.io/v3/f166e893a30a4b8a9d7f41de03112fa8',
+    },
+  },
+};
 
 const logo = `
 <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -32,31 +35,37 @@ const logo = `
 </svg>
 `;
 
+const coinbaseWalletSdk = coinbaseWalletModule({ darkMode: true });
+const gnosis = gnosisModule();
+const walletConnect = walletConnectModule();
+
 export const onboard = Onboard({
-  wallets: [injected],
+  wallets: [injected, coinbaseWalletSdk, gnosis, walletConnect],
   chains: [
     {
       id: '0x1', // chain ID must be in hexadecimel
       token: 'ETH', // main chain token
       label: 'Ethereum Mainnet',
-      rpcUrl: providersConfig[provider]['mainnet']['URL'] // rpcURL required for wallet balances
+      rpcUrl: providersConfig[provider]['mainnet']['URL'], // rpcURL required for wallet balances
     },
     {
       id: '0x4',
       token: 'rETH',
       label: 'Ethereum Rinkeby Testnet',
-      rpcUrl: providersConfig[provider]['rinkeby']['URL']
-    }
+      rpcUrl: providersConfig[provider]['rinkeby']['URL'],
+    },
   ],
   appMetadata: {
-    name: 'Volia',
+    name: 'Samsara',
     icon: logo,
     logo: logo,
     description: 'Provide volunteers with regular CRYPTO donation',
+    /*
     recommendedInjectedWallets: [
       { name: 'Coinbase', url: 'https://wallet.coinbase.com/' },
       { name: 'MetaMask', url: 'https://metamask.io' },
     ],
+    */
   },
 });
 
@@ -68,9 +77,12 @@ export async function connectWallet() {
 export async function saveWalletOnChange(setWallet) {
   const walletsSub = onboard.state.select('wallets');
 
-  const { unsubscribe } = walletsSub.subscribe(wallets => {
+  const { unsubscribe } = walletsSub.subscribe((wallets) => {
     const connectedWallets = wallets.map(({ label }) => label);
-    window.localStorage.setItem('connectedWallets', JSON.stringify(connectedWallets));
+    window.localStorage.setItem(
+      'connectedWallets',
+      JSON.stringify(connectedWallets)
+    );
     setWallet(wallets[0]);
   });
 
@@ -78,11 +90,13 @@ export async function saveWalletOnChange(setWallet) {
 }
 
 export async function loadWallet() {
-  const previouslyConnectedWallets = JSON.parse(window.localStorage.getItem('connectedWallets'));
+  const previouslyConnectedWallets = JSON.parse(
+    window.localStorage.getItem('connectedWallets')
+  );
 
-  if (previouslyConnectedWallets && previouslyConnectedWallets[0]) { 
+  if (previouslyConnectedWallets && previouslyConnectedWallets[0]) {
     return await onboard.connectWallet({
-      autoSelect: { label: previouslyConnectedWallets[0], disableModals: true }
+      autoSelect: { label: previouslyConnectedWallets[0], disableModals: true },
     });
   }
 }
