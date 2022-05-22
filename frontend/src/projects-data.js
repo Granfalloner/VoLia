@@ -30,7 +30,7 @@ function getTiers(projectId) {
 const PROJECTS = [
   {
     projectId: 1,
-    image: '/projects/iryna mischenko.png',
+    image: '/projects/Iryna Mischenko.png',
     title: 'Iryna Mischenko',
     tiers: getTiers(1),
     description:
