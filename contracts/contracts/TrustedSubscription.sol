@@ -137,6 +137,24 @@ contract TrustedSubscription is Ownable {
     emit Subscribed(projectId, msg.sender, block.timestamp);
   }
 
+  function isSubscribed(uint256 projectId, uint16 tierIndex, address donator) view public returns (bool) {
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    Project storage project = projects[projectId];
+    Tier storage tier = project.tiers[tierIndex];
+
+    require(tier.isActive, 'Tier is not active');
+
+    SubscriptionGroup storage tokenSubscriptions = project.tokenSubscriptions[tier.tokenId];
+    for(uint256 i; i < tokenSubscriptions.subscriptions.length; i++) {
+      Subscription memory sub = tokenSubscriptions.subscriptions[i];
+      if ((sub.donator == donator) && (sub.tierIndex == tierIndex)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function unsubscribe(uint256 projectId, address donator) public {
     require(msg.sender == donator || msg.sender == owner(), 'Not authorized to unsubscribe');
 
@@ -226,6 +244,26 @@ contract TrustedSubscription is Ownable {
       uint32 tokenId = project.activeTokens[i];
       result += numberOfSubscribersInToken(projectId, tokenId);
     }
+  }
+
+  function numberOfSubscribersInTier(uint32 projectId, uint32 tierIndex) public view returns (uint256 result) {
+    require(projectId <= projectCounter, 'Invalid project id');
+
+    Project storage project = projects[projectId];
+    Tier storage tier = project.tiers[tierIndex];
+
+    require(tier.isActive, 'Tier is not active');
+
+    SubscriptionGroup storage tokenSubscriptions = project.tokenSubscriptions[tier.tokenId];
+
+    for(uint256 i; i < tokenSubscriptions.subscriptions.length; i++) {
+      Subscription memory sub = tokenSubscriptions.subscriptions[i];
+      if (sub.tierIndex == tierIndex) {
+        result += 1;
+      }
+    }
+
+    return result;
   }
 
   function numberOfSubscribersInToken(uint32 projectId, uint32 tokenId) public view returns (uint256) {

@@ -3,8 +3,7 @@ import Header from '../components/Header';
 import * as ethers from 'ethers';
 import * as Crypto from '../crypto.js';
 import ContractAbi from '../abi/ContractAbi.json';
-
-const ContractAddress = '0xD21b3Ff5798b876C0bD36C1294c2B937cA03C6C1';
+import { config } from '../config'
 
 const Admin = (props) => {
   const [wallet, setWallet] = useState(undefined);
@@ -29,6 +28,7 @@ const Admin = (props) => {
   const registerProject = async () => {
     const provider = new ethers.providers.Web3Provider(wallet.provider, 'any');
     const signer = provider.getUncheckedSigner();
+    const { USDCAddress, ContractAddress } = config[wallet.chains[0].id];
     const contract = new ethers.Contract(ContractAddress, ContractAbi, signer);
     const tx = await contract.registerProject(address, []);
     alert(JSON.stringify(tx));
@@ -38,9 +38,10 @@ const Admin = (props) => {
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
       <div className="text-center">
-        <input type="text" value={address} onChange={e => setAddress(e.value)} placeholder="Type here" className="mt-16 input w-full max-w-xs" />
+        <label htmlFor="address">Receiver of funds:</label>
+        <input id="address" type="text" value={address} onChange={e => setAddress(e.value)} placeholder="Type here" className="mt-16 input w-full max-w-xs" />
         <br />
-        <button className="btn mt-6" onClick={registerProject}>Button</button>
+        <button className="btn mt-6" onClick={registerProject}>Create Project</button>
       </div>
     </div>
   );
