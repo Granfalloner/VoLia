@@ -19,5 +19,18 @@ async function verifyContract(address, params) {
   }
 }
 
+async function fastForward(timeDelta, adjust = false, txTimeOffset = 1) {
+    // Some txs (e.g., claim) add 1 sec to time in the contract, to match with calc we need to emulate it
+    await ethers.provider.send('evm_increaseTime', [timeDelta - (adjust ? txTimeOffset : 0)]);
+    await ethers.provider.send('evm_mine');
+}
+
+async function setTime(timestamp) {
+  await ethers.provider.send('evm_setNextBlockTimestamp', [timestamp]);
+  await ethers.provider.send('evm_mine');
+}
+
 exports.deployContract = deployContract;
 exports.verifyContract = verifyContract;
+exports.fastForward = fastForward;
+exports.setTime = setTime;

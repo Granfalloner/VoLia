@@ -207,7 +207,7 @@ contract TrustedSubscription is Ownable {
     }
 
     uint256 totalFee = totalAmount * project.fee / MAX_FEE;
-    token.transferFrom(address(this), project.claimAddress, totalAmount - totalFee);
+    token.transfer(project.claimAddress, totalAmount - totalFee);
   }
 
   function getSubscriptionDetails(address donator, uint32 projectId) public view returns (SubscriptionDetails memory) {
