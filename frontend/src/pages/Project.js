@@ -151,6 +151,7 @@ const Flow = ({
 const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [numSubscribed, setNumSubscribed] = useState(5);
   const [pendingTx, setPendingTx] = useState(undefined);
   const [token, setToken] = useState(undefined);
   const [contract, setContract] = useState(undefined);
@@ -165,8 +166,14 @@ const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
         tier.tierIndex,
         address
       );
-      console.log(projectId, tier.tierIndex, address, isSub);
+
+      const numSub = await contract.numberOfSubscribersInTier(
+        projectId,
+        tier.tierIndex
+      );
+
       setIsSubscribed(isSub);
+      setNumSubscribed(numSub.toNumber());
     }
   };
 
@@ -229,10 +236,14 @@ const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
         <h2 className="card-title text-sm font-bold text-center m-auto">
           {name}
         </h2>
-        <p className=""></p>
-        <div className="text-center text-neutral mb-2 mt-8">
+        <div className="text-center text-neutral mb-2 mt-0">
           {amount} {currency} / {period}
         </div>
+        {numSubscribed != undefined && (
+          <p className="text-sm text-center mb-2">
+            🧍{numSubscribed} subscribers
+          </p>
+        )}
         <div className="card-actions justify-center">
           {!isSubscribed && (
             <button
