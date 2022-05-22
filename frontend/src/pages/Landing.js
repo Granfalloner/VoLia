@@ -5,7 +5,7 @@ import * as Crypto from '../crypto.js';
 
 const stripeStyles = {
   backgroundImage: 'url("/bg2.png")',
-  minHeight: '265px',
+  minHeight: '350px',
 };
 
 const Banner = () => (
@@ -19,7 +19,7 @@ const Banner = () => (
       </div>
     <div className="max-w-2xl mt-5 m-auto"></div>
 
-    <div className="max-w-xl mt-5 m-auto">
+    <div className="max-w-2xl mt-5 m-auto">
       Make your non-profit organization or business sustainable with regular
       CRYPTO subscriptions.
     </div>
