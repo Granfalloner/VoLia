@@ -50,7 +50,7 @@ const PROJECTS = [
     image: '/projects/Anna Pavlovna.jpg',
     tiers: getTiers(3),
     description:
-      'Our team also covering humanitarian aids, we’re helping children, elderlies and also protecting some ​​animal shelters in Kyiv and the cities nearby.',
+      'Position: Before the war, I was working in restaurant business, but we were always helping kids and nursing homes.​​Currently, we’re almost full-time volunteers. ​​ Our team is covering humanitarian aid, we’re helping children, displaced people,​​ disabled persons, lonely mothers with kids and lonely elderlies.​​ I use individual approach in volunteering there are many people writing to me ​​ asking for the help, many of them are displaced people,​​so I’m carefully reviewing their requests and try to provide individual special help for each of them,​​like to select right sizes of clothes or shoes. I try to find the best stuff for them and ​​ I pack it by myself. The only fundraising we have now is for delivery needs.​​We have to deliver humanitarian aids in Ukraine, and since the price for petrol is dramatically increased,​​ it became harder to transport the aid. Also protecting some ​​animal shelters in Kyiv and the cities nearby.​​Almost 15% of the humanitarian help we received is for animals,​​so we are spreading the news once we got it and try to deliver this food to those who need it.',
   },
 ];
 
