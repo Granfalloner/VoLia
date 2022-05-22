@@ -14,9 +14,11 @@ const Banner = () => (
       <b>Vol</b>unteers’ <b>Lia</b>ison — Make it regular
     </h1>
 
-    <div className="max-w-2xl mt-5 m-auto">
-      Provide volunteers with regular CRYPTO donation. Your donation will be
-      immediately received by volunteer.
+    <div className="max-w-2xl mt-5 m-auto"></div>
+
+    <div className="max-w-xl mt-5 m-auto">
+      Make your non-profit organization or business sustainable with regular
+      CRYPTO subscriptions.
     </div>
   </div>
 );
@@ -47,7 +49,7 @@ const Landing = (props) => {
     Crypto.loadWallet();
     return Crypto.saveWalletOnChange(setWallet);
   }, []);
-  
+
   return (
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
