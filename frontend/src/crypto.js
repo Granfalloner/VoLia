@@ -1,6 +1,8 @@
 import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
 import coinbaseWalletModule from '@web3-onboard/coinbase';
+import gnosisModule from '@web3-onboard/gnosis';
+import walletConnectModule from '@web3-onboard/walletconnect';
 
 const injected = injectedModule();
 
@@ -34,9 +36,11 @@ const logo = `
 `;
 
 const coinbaseWalletSdk = coinbaseWalletModule({ darkMode: true });
+const gnosis = gnosisModule();
+const walletConnect = walletConnectModule();
 
 export const onboard = Onboard({
-  wallets: [injected, coinbaseWalletSdk],
+  wallets: [injected, coinbaseWalletSdk, gnosis, walletConnect],
   chains: [
     {
       id: '0x1', // chain ID must be in hexadecimel
@@ -56,10 +60,12 @@ export const onboard = Onboard({
     icon: logo,
     logo: logo,
     description: 'Provide volunteers with regular CRYPTO donation',
+    /*
     recommendedInjectedWallets: [
       { name: 'Coinbase', url: 'https://wallet.coinbase.com/' },
       { name: 'MetaMask', url: 'https://metamask.io' },
     ],
+    */
   },
 });
 
