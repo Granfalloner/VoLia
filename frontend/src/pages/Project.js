@@ -151,7 +151,7 @@ const Flow = ({
 const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [numSubscribed, setNumSubscribed] = useState(5);
+  const [numSubscribed, setNumSubscribed] = useState(undefined);
   const [pendingTx, setPendingTx] = useState(undefined);
   const [token, setToken] = useState(undefined);
   const [contract, setContract] = useState(undefined);
