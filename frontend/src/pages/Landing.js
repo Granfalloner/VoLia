@@ -11,9 +11,12 @@ const stripeStyles = {
 const Banner = () => (
   <div style={stripeStyles} className="text-center">
     <h1 className="text-3xl pt-20">
-      <b>Vol</b>unteers’ <b>Lia</b>ison — Make it regular
+      <b>SAMSARA</b> 
     </h1>
-
+    <div className="max-w-2xl mt-5 m-auto"></div>
+     <div className="max-w-xl mt-5 m-auto">
+      Recurring crypto payments.
+      </div>
     <div className="max-w-2xl mt-5 m-auto"></div>
 
     <div className="max-w-xl mt-5 m-auto">
