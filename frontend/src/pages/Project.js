@@ -7,6 +7,7 @@ import * as ethers from 'ethers';
 import ContractAbi from '../abi/ContractAbi.json';
 import ERC20Abi from '../abi/ERC20Abi.json';
 import { config } from '../config';
+const { formatUnits } = ethers.utils;
 
 const MAX_PERIODS = 3;
 
@@ -22,7 +23,7 @@ const Flow = ({
   onSubscribe,
 }) => {
   const [step, setStep] = useState(1);
-  const { name, amount, currency, period, tierIndex } = tier;
+  const { name, amount, currency, period, tierIndex, tokenDecimals } = tier;
 
   useEffect(() => {
     const init = async () => {
@@ -30,7 +31,6 @@ const Flow = ({
         setStep(2);
 
         if (token) {
-          const decimals = await token.decimals();
           const { ContractAddress } = config[wallet.chains[0].id];
           const allowance = await token.allowance(
             wallet.accounts[0].address,
@@ -39,7 +39,7 @@ const Flow = ({
           console.log('allowance=', allowance.toNumber());
           if (
             allowance.toNumber() >=
-            amount * (MAX_PERIODS / 2) * 10 ** decimals
+            amount * (MAX_PERIODS / 2) * 10 ** tokenDecimals
           ) {
             setStep(3);
           }
@@ -52,11 +52,10 @@ const Flow = ({
   }, [wallet, token, amount, currency, open]);
 
   const approveAllowance = async (amount) => {
-    const decimals = await token.decimals();
     const { ContractAddress } = config[wallet.chains[0].id];
     const tx = await token.approve(
       ContractAddress,
-      amount * MAX_PERIODS * 10 ** decimals
+      amount * MAX_PERIODS * 10 ** tokenDecimals
     );
     return tx;
   };
@@ -148,13 +147,19 @@ const Flow = ({
   );
 };
 
-const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
+const Tier = ({
+  projectId,
+  tier,
+  wallet,
+  contract,
+  signer,
+  onConnectWallet,
+}) => {
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [numSubscribed, setNumSubscribed] = useState(undefined);
   const [pendingTx, setPendingTx] = useState(undefined);
   const [token, setToken] = useState(undefined);
-  const [contract, setContract] = useState(undefined);
 
   const { name, amount, currency, period } = tier;
 
@@ -183,31 +188,17 @@ const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
 
   useEffect(() => {
     const init = async () => {
-      if (wallet) {
-        const provider = new ethers.providers.Web3Provider(
-          wallet.provider,
-          'any'
-        );
-        const signer = provider.getUncheckedSigner();
-
+      if (contract && wallet) {
         const { USDCAddress, ContractAddress } = config[wallet.chains[0].id];
 
         const token = new ethers.Contract(USDCAddress, ERC20Abi, signer);
         setToken(token);
-
-        const contract = new ethers.Contract(
-          ContractAddress,
-          ContractAbi,
-          signer
-        );
-        setContract(contract);
       } else {
         setToken(undefined);
-        setContract(undefined);
       }
     };
     init();
-  }, [wallet]);
+  }, [wallet, contract, signer]);
 
   const unsubscribe = async () => {
     const tx = await contract.unsubscribe(
@@ -292,11 +283,15 @@ const Tier = ({ projectId, tier, wallet, onConnectWallet }) => {
 
 const Project = (props) => {
   const { projectId } = useParams();
-  const { title, description, tiers, image } = projectsData.find(
-    (x) => x.projectId == projectId
-  );
+  const { title, address, description, tiers, image, ethAddress } =
+    projectsData.find((x) => x.projectId == projectId);
 
   const [wallet, setWallet] = useState(undefined);
+  const [contract, setContract] = useState(undefined);
+  const [signer, setSigner] = useState(undefined);
+  const [claimData, setClaimData] = useState(undefined);
+
+  const currentAddress = wallet?.accounts[0].address;
 
   const onConnectWallet = async () => {
     const wallet = await Crypto.connectWallet();
@@ -308,12 +303,63 @@ const Project = (props) => {
     return Crypto.saveWalletOnChange(setWallet);
   }, []);
 
+  useEffect(() => {
+    const init = async () => {
+      if (wallet) {
+        const provider = new ethers.providers.Web3Provider(
+          wallet.provider,
+          'any'
+        );
+        const signer = provider.getUncheckedSigner();
+
+        const { ContractAddress } = config[wallet.chains[0].id];
+        const contract = new ethers.Contract(
+          ContractAddress,
+          ContractAbi,
+          signer
+        );
+        setContract(contract);
+        setSigner(signer);
+      } else {
+        setContract(undefined);
+        setSigner(undefined);
+      }
+    };
+    init();
+  }, [wallet]);
+
+  const isProjectOwner = currentAddress == ethAddress.toLowerCase();
+
+  useEffect(() => {
+    if (wallet && contract && isProjectOwner) {
+      loadClaimAmount();
+    }
+  }, [wallet, contract]);
+
+  const loadClaimAmount = async () => {
+    const data = await contract.claimableAmounts(projectId);
+    const promises = data.map(async ([amount, tokenAddress]) => {
+      const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+      const decimals = await token.decimals();
+      const symbol = await token.symbol();
+      return formatUnits(amount, decimals) + ' ' + symbol;
+    });
+    setClaimData(await Promise.all(promises));
+  };
+
+  const withdraw = async () => {
+    const tx = await contract.claim(projectId);
+    tx.wait().then(() => {
+      setClaimData(undefined);
+    });
+  };
+
   return (
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
       <div style={{ maxWidth: '1000px' }} className="m-auto">
         <div
-          className="rounded-lg bg-white mh-64 p-12 mt-8 m-auto"
+          className="rounded-lg bg-white mh-64 mt-8 m-auto"
           style={{
             backgroundImage: 'url("/projectBG.png")',
             backgroundRepeat: 'no-repeat',
@@ -321,13 +367,42 @@ const Project = (props) => {
             paddingTop: '70px',
           }}
         >
-          <div className="avatar">
-            <div className="w-28 rounded">
-              <img src={image} />
+          <div className="px-12 pb-6">
+            <div className="avatar">
+              <div className="w-28 rounded">
+                <img src={image} />
+              </div>
+            </div>
+            <div className="flex justify-between">
+              <div>
+                <div className="font-bold text-lg mt-2">{title}</div>
+                <div className="text-gray-500">{address}</div>
+              </div>
+
+              {isProjectOwner && (
+                <div className="flex-end mt-4">
+                  {claimData?.map((amount, index) => (
+                    <span key={index} className="font-bold text-sm pr-4">
+                      {amount}
+                    </span>
+                  ))}
+                  <button
+                    className="btn bg-black hover:bg-pink-800 btn-sm"
+                    onClick={withdraw}
+                  >
+                    Withdraw
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-          <div className="font-bold text-lg mt-2">{title}</div>
-          <div className="mt-16">{description}</div>
+
+          <hr />
+          <div className="mt-6 px-12 pb-12">
+            <b>Description</b>
+            <br />
+            <div className="pt-2">{description}</div>
+          </div>
         </div>
         <h3 className="mt-8 mb-2 text-xl text-center font-bold">
           Select a membership level
@@ -335,6 +410,8 @@ const Project = (props) => {
         <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier, index) => (
             <Tier
+              contract={contract}
+              signer={signer}
               projectId={projectId}
               tier={tier}
               wallet={wallet}
