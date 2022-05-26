@@ -36,8 +36,8 @@ const PROJECTS = [
       },
     ],
     description:
-      'KOLO is a team of top managers of product companies that have created a fund to provide operational assistance to the Armed Forces. The world is investing much to stop this war. But crimes continue. Technology can accelerate these efforts and prevent worsening of the humanitarian crisis. Help Ukrainians fight the cause of the crisis, not just its consequences.
-'},
+      'KOLO is a team of top managers of product companies that have created a fund to provide operational assistance to the Armed Forces. The world is investing much to stop this war. But crimes continue. Technology can accelerate these efforts and prevent worsening of the humanitarian crisis. Help Ukrainians fight the cause of the crisis, not just its consequences.'
+},
   {
     projectId: 2,
     title: 'Alla and Denys Koshelnik',
