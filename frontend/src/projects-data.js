@@ -1,7 +1,7 @@
 const PROJECTS = [
   {
     projectId: 1,
-    image: '/projects/kolo.jpg',
+    image: '/projects/kolo.png',
     title: 'Kolo',
     address: 'Ukraine',
     ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
