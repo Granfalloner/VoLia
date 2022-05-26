@@ -154,6 +154,7 @@ const Tier = ({
   contract,
   signer,
   onConnectWallet,
+  customColor,
 }) => {
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -227,7 +228,10 @@ const Tier = ({
         <h2 className="card-title text-sm font-bold text-center m-auto">
           {name}
         </h2>
-        <div className="text-center text-neutral mb-2 mt-0">
+        <div
+          className="text-center text-neutral mb-2 mt-0"
+          style={customColor && { color: 'black' }}
+        >
           {amount} {currency} / {period}
         </div>
         {numSubscribed != undefined && (
@@ -245,7 +249,14 @@ const Tier = ({
                 setOpen(true);
               }}
               disabled={!!pendingTx}
-              className="btn w-100"
+              className="btn w-full hover-btn"
+              style={
+                customColor && {
+                  backgroundColor: customColor,
+                  color: 'black',
+                  border: 'none',
+                }
+              }
             >
               Subscribe
             </button>
@@ -283,7 +294,7 @@ const Tier = ({
 
 const Project = (props) => {
   const { projectId } = useParams();
-  const { title, address, description, tiers, image, ethAddress } =
+  const { title, address, description, tiers, image, ethAddress, customColor } =
     projectsData.find((x) => x.projectId == projectId);
 
   const [wallet, setWallet] = useState(undefined);
@@ -361,9 +372,9 @@ const Project = (props) => {
         <div
           className="rounded-lg bg-white mh-64 mt-8 m-auto"
           style={{
-            backgroundImage: 'url("/projectBG.png")',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'top',
+            background: customColor
+              ? `linear-gradient(to bottom, ${customColor}, ${customColor} 128px, transparent 128px, transparent 100%)`
+              : 'url("/projectBG.png") no-repeat top',
             paddingTop: '70px',
           }}
         >
@@ -417,6 +428,7 @@ const Project = (props) => {
               wallet={wallet}
               key={index}
               onConnectWallet={onConnectWallet}
+              customColor={customColor}
             />
           ))}
         </div>

@@ -37,6 +37,7 @@ const PROJECTS = [
     title: 'Iryna Mischenko',
     address: 'Ukraine',
     ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
+    customColor: '#F9DD4B',
     tiers: getTiers(1),
     description:
       'Position: The former owner of the travel agency “Friends”. Currently, I’m a volunteer. I’m helping our military guys with all what they’re asking me for. ​​Description: My approach is to announce a very particular fundraise for 1-2 days to buy one thing, for example a military off-road car. Once we did it, I publish a report about a purchase and start a new fundraising. For me, it’s very crucial in terms of fundraising to know soldiers in person or if my friends know them, so we can help real particular people. Secondly, I must be sure that what we bought is really in place and doing its work (shooting, flying etc), and not is being resold on a secondary market. Over 400,000 dollars have been collected in 80 days. ',
