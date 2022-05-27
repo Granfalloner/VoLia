@@ -12,7 +12,7 @@ async function main() {
   if (network.name === 'rinkeby') {
     USDCAddress = '0xeb8f08a975Ab53E34D8a0330E0D34de942C95926';
   } else if (network.name === 'mumbai') {
-    USDCAddress = '0xe6b8a5CF854791412c1f6EFC7CAf629f5Df1c747';
+    USDCAddress = '0xe11A86849d99F524cAC3E7A0Ec1241828e332C62';
   }
 
   if (network.name === 'rinkeby' || network.name === 'mumbai') {
