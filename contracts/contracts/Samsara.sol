@@ -42,11 +42,11 @@ contract Samsara is Ownable {
   uint256 constant DEFAULT_FEE = 500; // 0.5%
   uint256 constant MAX_FAILED_CLAIMS = 3;
 
-  uint32 projectCounter;
-  uint32 maxSubscribers = 5_000;
+  uint32 public projectCounter;
+  uint32 public maxSubscribers = 5_000;
 
   mapping(uint256 => Project) public projects;
-  mapping(address => bool) tokenStatus;
+  mapping(address => bool) public tokenStatus;
 
   event Subscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
   event Unsubscribed(uint256 indexed projectId, address indexed donator, uint256 timestamp);
@@ -119,12 +119,6 @@ contract Samsara is Ownable {
     require(project.isActive, 'Project is not active');
     require(fee < MAX_PROJECT_FEE, 'Fee is too high');
     project.fee = fee;
-  }
-
-  function addTokens(address[] calldata contractAddresses) public onlyOwner {
-    for (uint256 i; i < contractAddresses.length; ++i) {
-      tokenStatus[contractAddresses[i]] = true;
-    }
   }
 
   function enableTokens(address[] calldata contractAddresses) public onlyOwner {

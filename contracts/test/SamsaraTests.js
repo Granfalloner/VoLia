@@ -8,7 +8,7 @@ describe('Samsara', function () {
     [owner, user] = await ethers.getSigners();
     token = await utils.deployContract('TestToken');
     contract = await utils.deployContract('Samsara');
-    await contract.addTokens([token.address]);
+    await contract.enableTokens([token.address]);
   });
 
   it('Should work', async function () {
