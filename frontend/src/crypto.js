@@ -15,6 +15,9 @@ const providersConfig = {
     rinkeby: {
       URL: 'https://eth-rinkeby.alchemyapi.io/v2/C2rgLGUYKWj4ygGCRP4UjHQP2QeoXCep',
     },
+    mumbai: {
+      URL: 'https://polygon-mumbai.g.alchemy.com/v2/Omk4TvEUaQ6m5EzeIT-5ZHJcYIyxbZvT',
+    }
   },
   infura: {
     mainnet: {
@@ -48,6 +51,12 @@ export const onboard = Onboard({
       label: 'Ethereum Rinkeby Testnet',
       rpcUrl: providersConfig[provider]['rinkeby']['URL'],
     },
+    {
+      id: '0x13881',
+      token: 'MATIC',
+      label: 'Mumbai',
+      rpcUrl: providersConfig[provider]['mumbai']['URL'],
+    }
   ],
   appMetadata: {
     name: 'Samsara',
