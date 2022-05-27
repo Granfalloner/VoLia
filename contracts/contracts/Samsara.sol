@@ -15,7 +15,7 @@ contract Samsara is Ownable {
 
   struct Subscription {
     uint16 tierIndex;
-    uint32 startDate;
+    uint40 startDate;
     uint8 failedClaims;
     address donator;
   }
@@ -141,7 +141,6 @@ contract Samsara is Ownable {
 
   function subscribe(uint256 projectId, uint16 tierIndex) public {
     require(projectId < projectCounter, 'Invalid project id');
-
     Project storage project = projects[projectId];
 
     require(project.isActive, 'Project is not active'); 
@@ -149,11 +148,7 @@ contract Samsara is Ownable {
     require(tokenStatus[project.tokenAddress], 'Token is not active');
     require(project.subscriptions.length < maxSubscribers, 'Maximum number of subscribers reached');
 
-    if (project.lastClaimDate == 0) {
-      project.lastClaimDate = uint40(block.timestamp);
-    }
-
-    Subscription memory newSubscription = Subscription({tierIndex: tierIndex, startDate: uint32(block.timestamp), failedClaims: 0, donator: msg.sender});
+    Subscription memory newSubscription = Subscription({tierIndex: tierIndex, startDate: uint40(block.timestamp), failedClaims: 0, donator: msg.sender});
     project.subscriptions.push(newSubscription);
     
     emit Subscribed(projectId, msg.sender, block.timestamp);
@@ -165,11 +160,12 @@ contract Samsara is Ownable {
 
   function isSubscribedForTier(uint256 projectId, uint16 tierIndex, address donator) view public returns (bool) {
     require(projectId < projectCounter, 'Invalid project id');
-    require(tierIndex < projects[projectId].tiers.length, 'Invalid project id');
+    require(tierIndex < projects[projectId].tiers.length, 'Invalid tier index');
     Subscription[] storage subscriptions = projects[projectId].subscriptions;
 
     for (uint256 i = 0; i < subscriptions.length; ++i) {
-      if (subscriptions[i].donator == donator && subscriptions[i].tierIndex == tierIndex) {
+      Subscription storage subscription = subscriptions[i];
+      if (subscription.donator == donator && subscription.tierIndex == tierIndex) {
         return true;
       }
     }
@@ -264,11 +260,11 @@ contract Samsara is Ownable {
   function numberOfSubscribersInTier(uint32 projectId, uint32 tierIndex) public view returns (uint256 result) {
     require(projectId < projectCounter, 'Invalid project id');
     Project storage project = projects[projectId];
-    require(tierIndex < project.tiers.length, 'Invalid project id');
+    require(tierIndex < project.tiers.length, 'Invalid tier index');
 
     for(uint256 i; i < project.subscriptions.length; ++i) {
-      Subscription storage sub = project.subscriptions[i];
-      if (sub.tierIndex == tierIndex) {
+      Subscription storage subscription = project.subscriptions[i];
+      if (subscription.tierIndex == tierIndex) {
         result += 1;
       }
     }
@@ -283,8 +279,15 @@ contract Samsara is Ownable {
     result.contractAddress = project.tokenAddress;
 
     for (uint256 i = 0; i < subscriptions.length; ++i) {
-      Tier storage tier = project.tiers[subscriptions[i].tierIndex];
-      result.amount += uint96(tier.amount * (block.timestamp - project.lastClaimDate) / tier.period);
+      Subscription storage subscription = subscriptions[i];
+      Tier storage tier = project.tiers[subscription.tierIndex];
+
+      uint256 donatorLastClaim = project.lastClaimDate;
+      if (subscription.startDate > project.lastClaimDate || subscription.failedClaims > 0) {
+        donatorLastClaim = subscription.startDate;
+      }
+
+      result.amount += uint96(tier.amount * (block.timestamp - donatorLastClaim) / tier.period);
     }
   }
   
@@ -298,7 +301,7 @@ contract Samsara is Ownable {
     } else {
       subscription.failedClaims += 1;
       if (subscription.failedClaims == 1) {
-        subscription.startDate = uint32(block.timestamp);
+        subscription.startDate = uint40(block.timestamp);
       }
 
       emit ClaimFailed(project.id, donator, block.timestamp);
