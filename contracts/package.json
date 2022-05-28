@@ -11,7 +11,13 @@
     "type": "git",
     "url": "git+https://github.com/Granfalloner/VoLia.git"
   },
-  "keywords": ["VoLia", "volunteer", "liaison", "donate", "crypto"],
+  "keywords": [
+    "VoLia",
+    "volunteer",
+    "liaison",
+    "donate",
+    "crypto"
+  ],
   "author": "VoLia team",
   "license": "ISC",
   "bugs": {
@@ -26,7 +32,8 @@
     "dotenv": "^16.0.1",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.6",
-    "hardhat": "^2.9.5"
+    "hardhat": "^2.9.5",
+    "hardhat-gas-reporter": "^1.0.8"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.6.0"
