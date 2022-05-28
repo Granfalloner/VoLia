@@ -167,7 +167,7 @@ const Tier = ({
   const initSubStatus = async () => {
     if (wallet && contract && tier) {
       const { address } = wallet.accounts[0];
-      const isSub = await contract.isSubscribed(
+      const isSub = await contract.isSubscribedForTier(
         projectId,
         tier.tierIndex,
         address
@@ -348,14 +348,12 @@ const Project = (props) => {
   }, [wallet, contract]);
 
   const loadClaimAmount = async () => {
-    const data = await contract.claimableAmounts(projectId);
-    const promises = data.map(async ([amount, tokenAddress]) => {
-      const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
-      const decimals = await token.decimals();
-      const symbol = await token.symbol();
-      return formatUnits(amount, decimals) + ' ' + symbol;
-    });
-    setClaimData(await Promise.all(promises));
+    const [amount, tokenAddress] = await contract.claimableAmount(projectId);
+    const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+    const decimals = await token.decimals();
+    const symbol = await token.symbol();
+    const formattedAmount = formatUnits(amount, decimals) + ' ' + symbol;
+    setClaimData(formattedAmount);
   };
 
   const withdraw = async () => {
@@ -392,11 +390,7 @@ const Project = (props) => {
 
               {isProjectOwner && (
                 <div className="flex-end mt-4">
-                  {claimData?.map((amount, index) => (
-                    <span key={index} className="font-bold text-sm pr-4">
-                      {amount}
-                    </span>
-                  ))}
+                  <span className="font-bold text-sm pr-4">{claimData}</span>
                   <button
                     className="btn bg-black hover:bg-pink-800 btn-sm"
                     onClick={withdraw}

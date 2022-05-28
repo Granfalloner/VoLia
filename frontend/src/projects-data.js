@@ -1,6 +1,6 @@
 const PROJECTS = [
   {
-    projectId: 1,
+    projectId: 0,
     image: '/projects/kolo.jpeg',
     title: 'Kolo',
     address: 'Ukraine',
@@ -36,10 +36,10 @@ const PROJECTS = [
       },
     ],
     description:
-      'KOLO is a team of top managers of product companies that have created a fund to provide operational assistance to the Armed Forces. The world is investing much to stop this war. But crimes continue. Technology can accelerate these efforts and prevent worsening of the humanitarian crisis. Help Ukrainians fight the cause of the crisis, not just its consequences.'
-},
+      'KOLO is a team of top managers of product companies that have created a fund to provide operational assistance to the Armed Forces. The world is investing much to stop this war. But crimes continue. Technology can accelerate these efforts and prevent worsening of the humanitarian crisis. Help Ukrainians fight the cause of the crisis, not just its consequences.',
+  },
   {
-    projectId: 2,
+    projectId: 1,
     title: 'Alla and Denys Koshelnik',
     address: 'Ukraine',
     ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
@@ -74,10 +74,10 @@ const PROJECTS = [
     ],
     image: '/projects/All and Denys.jpg',
     description:
-      'We’re a team of 10 people, and we use our own cars (5) to help soldiers from Ukrainian army, ​​Territorial Defense Forces with needed equipments. Before the war, we were working in restaurant business, but we were always helping kids and nursing homes. ​​Currently, we’re almost full-time volunteers. ​​ Our team is covering humanitarian aid, we’re helping children, displaced people, ​​ disabled persons, lonely mothers with kids and lonely elderlies.​​ There are many people writing to us ​​ asking for the help, many of them are displaced people, ​​so we are carefully reviewing their requests and try to provide individual special help for each of them, ​​like to select right sizes of clothes or shoes. We try to find the best stuff for them and. ​​ The only fundraising we have now is for delivery needs. ​​We have to deliver humanitarian aids in Ukraine, and since the price for petrol is dramatically increased,​​ it became harder to transport the aid. Also we are protecting some ​​animal shelters in Kyiv and the cities nearby. ​​Almost 15% of the humanitarian help we received is for animals, ​​so we are spreading the news once we got it and try to deliver this food to those who need it.', 
-},
+      'We’re a team of 10 people, and we use our own cars (5) to help soldiers from Ukrainian army, ​​Territorial Defense Forces with needed equipments. Before the war, we were working in restaurant business, but we were always helping kids and nursing homes. ​​Currently, we’re almost full-time volunteers. ​​ Our team is covering humanitarian aid, we’re helping children, displaced people, ​​ disabled persons, lonely mothers with kids and lonely elderlies.​​ There are many people writing to us ​​ asking for the help, many of them are displaced people, ​​so we are carefully reviewing their requests and try to provide individual special help for each of them, ​​like to select right sizes of clothes or shoes. We try to find the best stuff for them and. ​​ The only fundraising we have now is for delivery needs. ​​We have to deliver humanitarian aids in Ukraine, and since the price for petrol is dramatically increased,​​ it became harder to transport the aid. Also we are protecting some ​​animal shelters in Kyiv and the cities nearby. ​​Almost 15% of the humanitarian help we received is for animals, ​​so we are spreading the news once we got it and try to deliver this food to those who need it.',
+  },
   {
-    projectId: 3,
+    projectId: 2,
     title: 'Iryna Mischenko',
     address: 'Ukraine',
     ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
