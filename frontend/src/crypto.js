@@ -17,7 +17,7 @@ const providersConfig = {
     },
     mumbai: {
       URL: 'https://polygon-mumbai.g.alchemy.com/v2/Omk4TvEUaQ6m5EzeIT-5ZHJcYIyxbZvT',
-    }
+    },
   },
   infura: {
     mainnet: {
@@ -39,7 +39,7 @@ const walletConnect = walletConnectModule();
 export const onboard = Onboard({
   wallets: [injected, coinbaseWalletSdk, gnosis, walletConnect],
   chains: [
-    {
+    /*{
       id: '0x1', // chain ID must be in hexadecimel
       token: 'ETH', // main chain token
       label: 'Ethereum Mainnet',
@@ -50,13 +50,13 @@ export const onboard = Onboard({
       token: 'rETH',
       label: 'Ethereum Rinkeby Testnet',
       rpcUrl: providersConfig[provider]['rinkeby']['URL'],
-    },
+    },*/
     {
       id: '0x13881',
       token: 'MATIC',
       label: 'Mumbai',
       rpcUrl: providersConfig[provider]['mumbai']['URL'],
-    }
+    },
   ],
   appMetadata: {
     name: 'Samsara',
