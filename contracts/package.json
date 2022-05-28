@@ -5,19 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "deploy": "npx hardhat run scripts/deploy.js"
+    "deploy": "npx hardhat clean && npx hardhat run scripts/deploy.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Granfalloner/VoLia.git"
   },
-  "keywords": [
-    "VoLia",
-    "volunteer",
-    "liaison",
-    "donate",
-    "crypto"
-  ],
+  "keywords": ["VoLia", "volunteer", "liaison", "donate", "crypto"],
   "author": "VoLia team",
   "license": "ISC",
   "bugs": {

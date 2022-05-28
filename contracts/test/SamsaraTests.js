@@ -26,31 +26,32 @@ describe('Samsara', function () {
     await token.connect(user).approve(contract.address, ethAmount.mul(12));
 
     const tierIndex = 0;
-    const isSubscribedBefore = await contract.isSubscribedForTier(
+    const isSubscribedForTierBefore = await contract.isSubscribedForTier(
       projectId,
       tierIndex,
       user.address
     );
-    expect(isSubscribedBefore).to.be.equal(false);
+    expect(isSubscribedForTierBefore).to.be.equal(false);
     expect(
       await contract.numberOfSubscribersInTier(projectId, tierIndex)
     ).to.be.equal(0);
 
     await contract.connect(user).subscribe(projectId, tierIndex);
 
-    const isSubscribedAfter = await contract.isSubscribedForTier(
+    const isSubscribedForTierAfter = await contract.isSubscribedForTier(
       projectId,
       tierIndex,
       user.address
     );
-    expect(isSubscribedAfter).to.be.equal(true);
+    expect(isSubscribedForTierAfter).to.be.equal(true);
 
-    const isSubscribedAfterOtherTier = await contract.isSubscribedForTier(
-      projectId,
-      tierIndex + 1,
-      user.address
-    );
-    expect(isSubscribedAfterOtherTier).to.be.equal(false);
+    const isSubscribedForTierAfterOtherTier =
+      await contract.isSubscribedForTier(
+        projectId,
+        tierIndex + 1,
+        user.address
+      );
+    expect(isSubscribedForTierAfterOtherTier).to.be.equal(false);
 
     const isDeployerSubscribed = await contract.isSubscribedForTier(
       projectId,

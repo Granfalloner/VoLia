@@ -148,37 +148,18 @@ contract Samsara is Ownable {
     emit Subscribed(projectId, msg.sender, block.timestamp);
   }
 
-  function isSubscribed(uint256 projectId, address donator) view public returns (bool) {
-    return subscriberIndex(projectId, donator) < projects[projectId].subscriptions.length;
-  }
-
   function isSubscribedForTier(uint256 projectId, uint16 tierIndex, address donator) view public returns (bool) {
-    require(projectId < projectCounter, 'Invalid project id');
     require(tierIndex < projects[projectId].tiers.length, 'Invalid tier index');
-    Subscription[] storage subscriptions = projects[projectId].subscriptions;
-
-    for (uint256 i = 0; i < subscriptions.length; ++i) {
-      Subscription storage subscription = subscriptions[i];
-      if (subscription.donator == donator && subscription.tierIndex == tierIndex) {
-        return true;
-      }
-    }
-
-    return false;
+    return subscriptionIndexForTier(projectId, tierIndex, donator) < projects[projectId].subscriptions.length;
   }
 
-  function subscriberIndex(uint256 projectId, address donator) public view returns (uint256 result) {
-    require(projectId < projectCounter, 'Invalid project id');
-    return subscriberIndexIn(projectId, donator, 0, projects[projectId].subscriptions.length);
-  }
-
-  function subscriberIndexIn(uint256 projectId, address donator, uint256 start, uint256 end) public view returns (uint256 result) {
+  function subscriptionIndexForTier(uint256 projectId, uint32 tierIndex, address donator) public view returns (uint256 result) {
     require(projectId < projectCounter, 'Invalid project id');
     Subscription[] storage subscriptions = projects[projectId].subscriptions;
 
-    for (uint256 i = start; i < end; ++i) {
-      if (subscriptions[i].donator == donator) {
-        return start + i;
+    for (uint256 i; i < projects[projectId].subscriptions.length; ++i) {
+      if (subscriptions[i].donator == donator && subscriptions[i].tierIndex == tierIndex) {
+        return i;
       }
     }
 

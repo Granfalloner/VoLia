@@ -16,30 +16,68 @@ async function main() {
   }
 
   if (network.name === 'rinkeby' || network.name === 'mumbai') {
-    await contract.enableTokens([USDCAddress]);
+    await (await contract.enableTokens([USDCAddress])).wait();
     console.log('Added token: ', USDCAddress);
 
     await contract.registerProject(owner.address, USDCAddress, [
       {
         isActive: true,
-        amount: 200 * 10 ** 6,
-        period: 60 * 60 * 24 * 30
+        amount: 50 * 10 ** 6,
+        period: 60 * 60 * 24 * 30,
       },
       {
         isActive: true,
-        amount: 400 * 10 ** 6,
-        period: 60 * 60 * 24 * 30
+        amount: 100 * 10 ** 6,
+        period: 60 * 60 * 24 * 30,
       },
       {
         isActive: true,
-        amount: 600 * 10 ** 6,
-        period: 60 * 60 * 24 * 30
-      }
+        amount: 500 * 10 ** 6,
+        period: 60 * 60 * 24 * 30,
+      },
     ]);
     console.log('Registered projects: ', 1);
+
+    await contract.registerProject(owner.address, USDCAddress, [
+      {
+        isActive: true,
+        amount: 10 * 10 ** 6,
+        period: 60 * 60 * 24 * 7,
+      },
+      {
+        isActive: true,
+        amount: 50 * 10 ** 6,
+        period: 60 * 60 * 24 * 14,
+      },
+      {
+        isActive: true,
+        amount: 150 * 10 ** 6,
+        period: 60 * 60 * 24 * 30,
+      },
+    ]);
+    console.log('Registered projects: ', 2);
+
+    await contract.registerProject(owner.address, USDCAddress, [
+      {
+        isActive: true,
+        amount: 10 * 10 ** 6,
+        period: 60 * 60 * 24 * 7,
+      },
+      {
+        isActive: true,
+        amount: 50 * 10 ** 6,
+        period: 60 * 60 * 24 * 14,
+      },
+      {
+        isActive: true,
+        amount: 200 * 10 ** 6,
+        period: 60 * 60 * 24 * 30,
+      },
+    ]);
+    console.log('Registered projects: ', 3);
   }
 
-  await new Promise(resolve => setTimeout(resolve, 30_000));
+  await new Promise((resolve) => setTimeout(resolve, 30_000));
   await utils.verifyContract(contract.address);
   console.log('Samsara contract verified');
   console.log('Deploy finished');
