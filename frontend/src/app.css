@@ -8,5 +8,5 @@
 
 .hover-btn:disabled,
 .hover-btn[disabled] {
-  filter: brightness(300%);
+  filter: brightness(200%);
 }
