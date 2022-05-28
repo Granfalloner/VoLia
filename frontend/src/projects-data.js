@@ -5,7 +5,7 @@ const PROJECTS = [
     title: 'Kolo',
     address: 'Ukraine',
     ethAddress: '0x7dd7e8d676c12c5b11d171fcf2745f927cbf2702',
-    customColor: '#F9DD4B',
+    //customColor: '#F9DD4B',
     tiers: [
       {
         name: 'Crypto Legolas',
