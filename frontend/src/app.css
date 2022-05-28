@@ -8,6 +8,6 @@
 
 .hover-btn:disabled,
 .hover-btn[disabled] {
-  filter: brightness(200%);
+  filter: opacity(0.45);
   cursor: not-allowed;
 }
