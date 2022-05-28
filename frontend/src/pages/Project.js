@@ -7,7 +7,7 @@ import * as ethers from 'ethers';
 import ContractAbi from '../abi/ContractAbi.json';
 import ERC20Abi from '../abi/ERC20Abi.json';
 import { config } from '../config';
-const { formatUnits } = ethers.utils;
+const { parseUnits, formatUnits } = ethers.utils;
 
 const MAX_PERIODS = 3;
 
@@ -21,9 +21,10 @@ const Flow = ({
   contract,
   onConnectWallet,
   onSubscribe,
+  tokenDecimals,
 }) => {
   const [step, setStep] = useState(1);
-  const { name, amount, currency, period, tierIndex, tokenDecimals } = tier;
+  const { name, amount, currency, period, tierIndex } = tier;
 
   useEffect(() => {
     const init = async () => {
@@ -36,11 +37,12 @@ const Flow = ({
             wallet.accounts[0].address,
             ContractAddress
           );
-          console.log('allowance=', allowance.toNumber());
-          if (
-            allowance.toNumber() >=
-            amount * (MAX_PERIODS / 2) * 10 ** tokenDecimals
-          ) {
+          console.log('allowance=', formatUnits(allowance, tokenDecimals));
+          const requiredAllowance = parseUnits(
+            `${amount * (MAX_PERIODS / 2)}`,
+            tokenDecimals
+          );
+          if (allowance.gte(requiredAllowance)) {
             setStep(3);
           }
         }
@@ -55,7 +57,7 @@ const Flow = ({
     const { ContractAddress } = config[wallet.chains[0].id];
     const tx = await token.approve(
       ContractAddress,
-      amount * MAX_PERIODS * 10 ** tokenDecimals
+      parseUnits(`${amount * MAX_PERIODS}`, tokenDecimals)
     );
     return tx;
   };
@@ -152,21 +154,25 @@ const Tier = ({
   tier,
   wallet,
   contract,
+  token,
   signer,
   onConnectWallet,
   customColor,
+  tokenDecimals,
 }) => {
   const [open, setOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [numSubscribed, setNumSubscribed] = useState(undefined);
   const [pendingTx, setPendingTx] = useState(undefined);
-  const [token, setToken] = useState(undefined);
 
   const { name, amount, currency, period } = tier;
 
   const initSubStatus = async () => {
     if (wallet && contract && tier) {
       const { address } = wallet.accounts[0];
+
+      console.log(projectId, tier.tierIndex, address);
+
       const isSub = await contract.isSubscribedForTier(
         projectId,
         tier.tierIndex,
@@ -187,25 +193,14 @@ const Tier = ({
     initSubStatus();
   }, [wallet, contract, tier]);
 
-  useEffect(() => {
-    const init = async () => {
-      if (contract && wallet) {
-        const { USDCAddress, ContractAddress } = config[wallet.chains[0].id];
-
-        const token = new ethers.Contract(USDCAddress, ERC20Abi, signer);
-        setToken(token);
-      } else {
-        setToken(undefined);
-      }
-    };
-    init();
-  }, [wallet, contract, signer]);
-
   const unsubscribe = async () => {
-    const tx = await contract.unsubscribe(
+    const { address } = wallet.accounts[0];
+    const index = await contract.subscriptionIndexForTier(
       projectId,
-      wallet.accounts[0].address
+      tier.tierIndex,
+      address
     );
+    const tx = await contract.unsubscribe(projectId, address, index);
     setPendingTx(tx.hash);
     tx.wait().then(() => {
       initSubStatus();
@@ -286,6 +281,7 @@ const Tier = ({
           setOpen={setOpen}
           onConnectWallet={onConnectWallet}
           onSubscribe={onSubscribe}
+          tokenDecimals={tokenDecimals}
         />
       </div>
     </div>
@@ -299,6 +295,8 @@ const Project = (props) => {
 
   const [wallet, setWallet] = useState(undefined);
   const [contract, setContract] = useState(undefined);
+  const [token, setToken] = useState(undefined);
+  const [tokenDecimals, setTokenDecimals] = useState(undefined);
   const [signer, setSigner] = useState(undefined);
   const [claimData, setClaimData] = useState(undefined);
 
@@ -329,11 +327,18 @@ const Project = (props) => {
           ContractAbi,
           signer
         );
+
         setContract(contract);
         setSigner(signer);
+
+        const { tokenAddress } = await contract.projects(projectId);
+        const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+        setToken(token);
+        setTokenDecimals(await token.decimals());
       } else {
         setContract(undefined);
         setSigner(undefined);
+        setToken(undefined);
       }
     };
     init();
@@ -416,6 +421,8 @@ const Project = (props) => {
           {tiers.map((tier, index) => (
             <Tier
               contract={contract}
+              token={token}
+              tokenDecimals={tokenDecimals}
               signer={signer}
               projectId={projectId}
               tier={tier}
