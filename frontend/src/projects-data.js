@@ -4,7 +4,7 @@ const PROJECTS = [
     image: '/projects/kolo.jpeg',
     title: 'Kolo',
     address: 'Ukraine',
-    ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
+    ethAddress: '0x7dd7e8d676c12c5b11d171fcf2745f927cbf2702',
     customColor: '#F9DD4B',
     tiers: [
       {
@@ -39,7 +39,7 @@ const PROJECTS = [
     projectId: 1,
     title: 'Alla and Denys Koshelnik',
     address: 'Ukraine',
-    ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
+    ethAddress: '0xcec9a2fdBF5fC44d8772E4f2b672d113f3750292',
     tiers: [
       {
         name: 'Crypto Peasant',
@@ -74,7 +74,7 @@ const PROJECTS = [
     projectId: 2,
     title: 'Iryna Mischenko',
     address: 'Ukraine',
-    ethAddress: '0x261d6B800CBF0cf3F0df6a79ae4C62a70c3b42d1',
+    ethAddress: '0xb8604241db5fc80be08788cb13dec9ebd58ee3c5',
     tiers: [
       {
         name: 'Crypto Peasant',
