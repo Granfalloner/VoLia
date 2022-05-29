@@ -373,7 +373,7 @@ const Project = (props) => {
     if (wallet && contract && isProjectOwner) {
       loadClaimAmount();
     }
-  }, [wallet, contract]);
+  }, [wallet, contract, claimAddress]);
 
   const loadClaimAmount = async () => {
     const [amount, tokenAddress] = await contract.claimableAmount(projectId);
