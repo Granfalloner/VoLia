@@ -332,11 +332,26 @@ const Project = (props) => {
         setContract(contract);
         setSigner(signer);
 
-        const { tokenAddress, claimAddress } = await contract.projects(
-          projectId
-        );
+        let tokenAddress, claimAddress;
+        try {
+          ({ tokenAddress, claimAddress }) = await contract.projects(
+            projectId
+          );
+        } catch {
+          alert('Count not get Project data from chain. Are you on a correct network?');
+          console.error(err);
+          return;
+        }
         setClaimAddress(claimAddress);
-        const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+        
+        let token;
+        try {
+          token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+        } catch (err) {
+          alert('Count not get Token data from chain. Are you on a correct network?');
+          console.error(err);
+          return;
+        }
         setToken(token);
         setTokenDecimals(await token.decimals());
       } else {
@@ -350,7 +365,7 @@ const Project = (props) => {
   }, [wallet]);
 
   const isProjectOwner =
-    currentAddress.toLowerCase() == claimAddre.toLowerCase();
+    currentAddress.toLowerCase() == claimAddress.toLowerCase();
 
   useEffect(() => {
     if (wallet && contract && isProjectOwner) {
