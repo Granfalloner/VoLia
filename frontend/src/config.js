@@ -11,7 +11,7 @@ export const config = {
   },
   '0x13881': {
     // mumbai
-    ContractAddress: '0x4D0062d2B81f21180373fE512c33a9Fb518C214D',
+    ContractAddress: '0x27811CD0ecB581eD945E74cE1CDb441113346511',
     USDCAddress: '0xe11A86849d99F524cAC3E7A0Ec1241828e332C62',
   },
 };

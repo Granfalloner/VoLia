@@ -24,6 +24,7 @@ const Flow = ({
   tokenDecimals,
 }) => {
   const [step, setStep] = useState(1);
+  const [balance, setBalance] = useState(undefined);
   const { name, amount, currency, period, tierIndex } = tier;
 
   useEffect(() => {
@@ -31,12 +32,10 @@ const Flow = ({
       if (wallet) {
         setStep(2);
 
+        const { address } = wallet.accounts[0];
         if (token) {
           const { ContractAddress } = config[wallet.chains[0].id];
-          const allowance = await token.allowance(
-            wallet.accounts[0].address,
-            ContractAddress
-          );
+          const allowance = await token.allowance(address, ContractAddress);
           console.log('allowance=', formatUnits(allowance, tokenDecimals));
           const requiredAllowance = parseUnits(
             `${amount * (MAX_PERIODS / 2)}`,
@@ -45,6 +44,10 @@ const Flow = ({
           if (allowance.gte(requiredAllowance)) {
             setStep(3);
           }
+          setBalance(
+            formatUnits(await token.balanceOf(address), tokenDecimals) +
+              currency
+          );
         }
       } else {
         setStep(1);
@@ -133,14 +136,19 @@ const Flow = ({
               </button>
             )}
             {step == 3 && (
-              <button
-                className="btn"
-                onClick={() => {
-                  waitNextStep(subscribe(projectId, tierIndex));
-                }}
-              >
-                Subscribe ({amount} {currency} / {period})
-              </button>
+              <div>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    waitNextStep(subscribe(projectId, tierIndex));
+                  }}
+                >
+                  Subscribe ({amount} {currency} / {period})
+                </button>
+                <div className="text-center text-sm text-gray">
+                  Balance: {balance}
+                </div>
+              </div>
             )}
           </div>
         </div>
