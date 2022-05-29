@@ -295,7 +295,7 @@ const Project = (props) => {
 
   const [wallet, setWallet] = useState(undefined);
   const [contract, setContract] = useState(undefined);
-  const [claimAddres, setClaimAddress] = useState(undefined);
+  const [claimAddress, setClaimAddress] = useState(undefined);
   const [token, setToken] = useState(undefined);
   const [tokenDecimals, setTokenDecimals] = useState(undefined);
   const [signer, setSigner] = useState(undefined);
@@ -342,12 +342,11 @@ const Project = (props) => {
           console.error(err);
           return;
         }
-        let { tokenAddress, claimAddress } = result;
-        setClaimAddress(claimAddress);
+        setClaimAddress(result.claimAddress);
 
         let token;
         try {
-          token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+          token = new ethers.Contract(result.tokenAddress, ERC20Abi, signer);
         } catch (err) {
           alert(
             'Count not get Token data from chain. Are you on a correct network?'
