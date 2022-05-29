@@ -39,7 +39,7 @@ contract Samsara is Ownable {
 
   uint256 constant MAX_FEE = 10_000;
   uint256 constant MAX_PROJECT_FEE = 1000;
-  uint256 constant DEFAULT_FEE = 500; // 0.5%
+  uint256 constant DEFAULT_FEE = 50; // 0.5%
   uint256 constant MAX_FAILED_CLAIMS = 3;
 
   uint32 public projectCounter;
