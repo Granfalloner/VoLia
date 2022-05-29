@@ -290,11 +290,12 @@ const Tier = ({
 
 const Project = (props) => {
   const { projectId } = useParams();
-  const { title, address, description, tiers, image, ethAddress, customColor } =
+  const { title, address, description, tiers, image, customColor } =
     projectsData.find((x) => x.projectId == projectId);
 
   const [wallet, setWallet] = useState(undefined);
   const [contract, setContract] = useState(undefined);
+  const [claimAddres, setClaimAddress] = useState(undefined);
   const [token, setToken] = useState(undefined);
   const [tokenDecimals, setTokenDecimals] = useState(undefined);
   const [signer, setSigner] = useState(undefined);
@@ -331,7 +332,10 @@ const Project = (props) => {
         setContract(contract);
         setSigner(signer);
 
-        const { tokenAddress } = await contract.projects(projectId);
+        const { tokenAddress, claimAddress } = await contract.projects(
+          projectId
+        );
+        setClaimAddress(claimAddress);
         const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
         setToken(token);
         setTokenDecimals(await token.decimals());
@@ -339,12 +343,14 @@ const Project = (props) => {
         setContract(undefined);
         setSigner(undefined);
         setToken(undefined);
+        setClaimAddress(undefined);
       }
     };
     init();
   }, [wallet]);
 
-  const isProjectOwner = currentAddress == ethAddress.toLowerCase();
+  const isProjectOwner =
+    currentAddress.toLowerCase() == claimAddre.toLowerCase();
 
   useEffect(() => {
     if (wallet && contract && isProjectOwner) {
