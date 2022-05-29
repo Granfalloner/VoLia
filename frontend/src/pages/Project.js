@@ -332,23 +332,26 @@ const Project = (props) => {
         setContract(contract);
         setSigner(signer);
 
-        let tokenAddress, claimAddress;
+        let result;
         try {
-          ({ tokenAddress, claimAddress }) = await contract.projects(
-            projectId
-          );
+          result = await contract.projects(projectId);
         } catch {
-          alert('Count not get Project data from chain. Are you on a correct network?');
+          alert(
+            'Count not get Project data from chain. Are you on a correct network?'
+          );
           console.error(err);
           return;
         }
+        let { tokenAddress, claimAddress } = result;
         setClaimAddress(claimAddress);
 
         let token;
         try {
           token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
         } catch (err) {
-          alert('Count not get Token data from chain. Are you on a correct network?');
+          alert(
+            'Count not get Token data from chain. Are you on a correct network?'
+          );
           console.error(err);
           return;
         }
