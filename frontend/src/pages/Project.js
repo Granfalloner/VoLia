@@ -343,7 +343,7 @@ const Project = (props) => {
           return;
         }
         setClaimAddress(claimAddress);
-        
+
         let token;
         try {
           token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
@@ -365,7 +365,7 @@ const Project = (props) => {
   }, [wallet]);
 
   const isProjectOwner =
-    currentAddress.toLowerCase() == claimAddress.toLowerCase();
+    currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
 
   useEffect(() => {
     if (wallet && contract && isProjectOwner) {
