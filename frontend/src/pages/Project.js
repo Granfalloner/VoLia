@@ -46,6 +46,7 @@ const Flow = ({
           }
           setBalance(
             formatUnits(await token.balanceOf(address), tokenDecimals) +
+              ' ' +
               currency
           );
         }
