@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import Header from '../components/Header';
 import projectsData from '../projects-data';
 import * as Crypto from '../crypto.js';
@@ -26,24 +27,30 @@ const Banner = () => (
   </div>
 );
 
-const Project = ({ title, description, projectId, image }) => (
-  <div className="card card-normal m-w-80 w-80 bg-base-100 shadow-xl flex-auto max-h-96 m-auto">
-    <div className="card-body">
-      <div className="avatar">
-        <div className="w-11 rounded">
-          <img src={image} />
+const Project = ({ title, description, projectId, image }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div 
+      onClick={()=>{navigate(`/project/${projectId}`)}}
+        className="card card-normal m-w-80 w-80 bg-base-100 shadow-xl flex-auto max-h-96 m-auto cursor-pointer">
+      <div className="card-body">
+        <div className="avatar">
+          <div className="w-11 rounded">
+            <img src={image} />
+          </div>
+        </div>
+        <h2 className="card-title">{title}</h2>
+        <p className="line-clamp-3">{description}</p>
+        <div className="card-actions justify-end">
+          <a className="btn btn-link" href={`/project/${projectId}`}>
+            Donate Now
+          </a>
         </div>
       </div>
-      <h2 className="card-title">{title}</h2>
-      <p className="line-clamp-3">{description}</p>
-      <div className="card-actions justify-end">
-        <a className="btn btn-link" href={`/project/${projectId}`}>
-          Donate Now
-        </a>
-      </div>
     </div>
-  </div>
-);
+  );
+}
 
 const Landing = (props) => {
   const [wallet, setWallet] = useState(undefined);

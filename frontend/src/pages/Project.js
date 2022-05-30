@@ -67,7 +67,13 @@ const Flow = ({
   };
 
   const subscribe = async (projectId, tierIndex) => {
-    const tx = await contract.subscribe(projectId, tierIndex);
+    let tx;
+    try {
+      tx = await contract.subscribe(projectId, tierIndex);
+    } catch (err) {
+      alert('Could not subscribe. ' + JSON.stringify(err));
+      return;
+    }
     onSubscribe(tx);
     setOpen(false);
     return tx;
@@ -204,12 +210,24 @@ const Tier = ({
 
   const unsubscribe = async () => {
     const { address } = wallet.accounts[0];
-    const index = await contract.subscriptionIndexForTier(
-      projectId,
-      tier.tierIndex,
-      address
-    );
-    const tx = await contract.unsubscribe(projectId, address, index);
+    let index;
+    try {
+      index = await contract.subscriptionIndexForTier(
+        projectId,
+        tier.tierIndex,
+        address
+      );
+    } catch (err) {
+      alert('Could get subscription index. ' + JSON.stringify(err));
+    }
+
+    let tx;
+    try {
+      tx = await contract.unsubscribe(projectId, address, index);
+    } catch (err) {
+      alert('Could not unsubscribe. ' + JSON.stringify(err));
+    }
+
     setPendingTx(tx.hash);
     tx.wait().then(() => {
       initSubStatus();
@@ -385,19 +403,29 @@ const Project = (props) => {
   }, [wallet, contract, claimAddress]);
 
   const loadClaimAmount = async () => {
-    const [amount, tokenAddress] = await contract.claimableAmount(projectId);
-    const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
-    const decimals = await token.decimals();
-    const symbol = await token.symbol();
-    const formattedAmount = formatUnits(amount, decimals) + ' ' + symbol;
-    setClaimData(formattedAmount);
+    try {
+      const [amount, tokenAddress] = await contract.claimableAmount(projectId);
+      const token = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+      const decimals = await token.decimals();
+      const symbol = await token.symbol();
+      const formattedAmount = formatUnits(amount, decimals) + ' ' + symbol;
+      setClaimData(formattedAmount);
+    } catch (err) {
+      alert(
+        'Could not load withdrawal data from chain. ' + JSON.stringify(err)
+      );
+    }
   };
 
   const withdraw = async () => {
-    const tx = await contract.claim(projectId);
-    tx.wait().then(() => {
-      setClaimData(undefined);
-    });
+    try {
+      const tx = await contract.claim(projectId);
+      tx.wait().then(() => {
+        setClaimData(undefined);
+      });
+    } catch (err) {
+      alert('Could not start withdrawal. ' + JSON.stringify(err));
+    }
   };
 
   return (
@@ -427,9 +455,14 @@ const Project = (props) => {
 
               {isProjectOwner && (
                 <div className="flex-end mt-4">
-                  <span className="font-bold text-sm pr-4">{claimData}</span>
+                  <span className="font-bold text-sm pr-4">
+                    {claimData || 'Loading..'}
+                  </span>
                   <button
-                    className="btn bg-black hover:bg-pink-800 btn-sm"
+                    className={
+                      'btn bg-black hover:bg-pink-800 btn-sm' +
+                      (claimData ? '' : ' loading ')
+                    }
                     onClick={withdraw}
                   >
                     Withdraw
