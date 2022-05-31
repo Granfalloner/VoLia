@@ -11,6 +11,10 @@ const { parseUnits, formatUnits } = ethers.utils;
 
 const MAX_PERIODS = 12;
 
+const isSupportedChain = (wallet) => {
+  return Crypto.chains.map((ch) => ch.id).includes(wallet.chains[0].id);
+};
+
 const Flow = ({
   projectId,
   open,
@@ -183,7 +187,7 @@ const Tier = ({
   const { name, amount, currency, period } = tier;
 
   const initSubStatus = async () => {
-    if (wallet && contract && tier) {
+    if (wallet && contract && tier && isSupportedChain(wallet)) {
       const { address } = wallet.accounts[0];
 
       console.log(projectId, tier.tierIndex, address);
@@ -397,7 +401,7 @@ const Project = (props) => {
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
 
   useEffect(() => {
-    if (wallet && contract && isProjectOwner) {
+    if (wallet && contract && isProjectOwner && isSupportedChain(wallet)) {
       loadClaimAmount();
     }
   }, [wallet, contract, claimAddress]);
@@ -431,6 +435,39 @@ const Project = (props) => {
   return (
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
+
+      {!isSupportedChain(wallet) && (
+        <div className="alert alert-warning shadow-lg">
+          <div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="stroke-current flex-shrink-0 h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            <span>
+              Warning: Switch to a Supported Network:{' '}
+              {Crypto.chains.map((ch) => (
+                <button
+                  className="btn-link"
+                  onClick={() => {
+                    await onboard.setChain({ chainId: ch.id });
+                  }}
+                >
+                  {ch.label}
+                </button>
+              ))}
+            </span>
+          </div>
+        </div>
+      )}
       <div style={{ maxWidth: '1000px' }} className="m-auto">
         <div
           className="rounded-lg bg-white mh-64 mt-8 m-auto"

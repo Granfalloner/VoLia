@@ -39,34 +39,36 @@ const coinbaseWalletSdk = coinbaseWalletModule({ darkMode: true });
 const gnosis = gnosisModule();
 const walletConnect = walletConnectModule();
 
+const chains = [
+  /*{
+    id: '0x1', // chain ID must be in hexadecimel
+    token: 'ETH', // main chain token
+    label: 'Ethereum Mainnet',
+    rpcUrl: providersConfig[provider]['mainnet']['URL'], // rpcURL required for wallet balances
+  },
+  {
+    id: '0x4',
+    token: 'rETH',
+    label: 'Ethereum Rinkeby Testnet',
+    rpcUrl: providersConfig[provider]['rinkeby']['URL'],
+  },*/
+  {
+    id: '0x89',
+    token: 'MATIC',
+    label: 'Polygon',
+    rpcUrl: providersConfig[provider]['polygon']['URL'],
+  },
+  {
+    id: '0x13881',
+    token: 'MATIC',
+    label: 'Mumbai',
+    rpcUrl: providersConfig[provider]['mumbai']['URL'],
+  },
+];
+
 export const onboard = Onboard({
   wallets: [injected, coinbaseWalletSdk, gnosis, walletConnect],
-  chains: [
-    /*{
-      id: '0x1', // chain ID must be in hexadecimel
-      token: 'ETH', // main chain token
-      label: 'Ethereum Mainnet',
-      rpcUrl: providersConfig[provider]['mainnet']['URL'], // rpcURL required for wallet balances
-    },
-    {
-      id: '0x4',
-      token: 'rETH',
-      label: 'Ethereum Rinkeby Testnet',
-      rpcUrl: providersConfig[provider]['rinkeby']['URL'],
-    },*/
-    {
-      id: '0x89',
-      token: 'MATIC',
-      label: 'Polygon',
-      rpcUrl: providersConfig[provider]['polygon']['URL'],
-    },
-    {
-      id: '0x13881',
-      token: 'MATIC',
-      label: 'Mumbai',
-      rpcUrl: providersConfig[provider]['mumbai']['URL'],
-    },
-  ],
+  chains: chains,
   appMetadata: {
     name: 'Samsara',
     icon: logo,
