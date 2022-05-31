@@ -406,7 +406,7 @@ const Project = (props) => {
       }
     };
     init();
-  }, [wallet, wron]);
+  }, [wallet, wrongChain]);
 
   const isProjectOwner =
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
