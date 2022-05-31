@@ -188,18 +188,18 @@ contract Samsara is Ownable {
     uint40 lastClaimDate = project.lastClaimDate;
     project.lastClaimDate = uint40(block.timestamp);
 
-    claimIn(projectId, lastClaimDate, project.tokenAddress, 0, project.subscriptions.length);
+    claimIn(projectId, lastClaimDate, project.tokenAddress);
     emit Claimed(projectId, block.timestamp);
   }
 
-  function claimIn(uint256 projectId, uint40 lastClaimDate, address tokenAddress, uint256 start, uint256 end) internal {
+  function claimIn(uint256 projectId, uint40 lastClaimDate, address tokenAddress) internal {
     Project storage project = projects[projectId];
     Subscription[] storage subscriptions = project.subscriptions;
 
     uint256 totalAmount;
     IERC20 token = IERC20(tokenAddress);
 
-    for (uint256 i = start; i < end; ++i) {
+    for (uint256 i; i < subscriptions.length; ++i) {
       Subscription storage subscription = subscriptions[i];
       Tier storage tier = project.tiers[subscription.tierIndex];
 

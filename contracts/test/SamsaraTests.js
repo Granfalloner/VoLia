@@ -5,7 +5,7 @@ const { parseEther } = ethers.utils;
 
 describe('Samsara', function () {
   beforeEach(async function () {
-    [owner, user] = await ethers.getSigners();
+    [owner, user, user2, user3] = await ethers.getSigners();
     token = await utils.deployContract('TestToken');
     contract = await utils.deployContract('Samsara');
     await contract.enableTokens([token.address]);
@@ -78,5 +78,35 @@ describe('Samsara', function () {
     const ownerBalance = await token.balanceOf(owner.address);
     expect(contractBalance.gt(0)).to.be.equal(true);
     expect(ownerBalance.gt(0)).to.be.equal(true);
+  });
+
+  it('Should work when not enough approval', async function () {
+    const amount = 100;
+    const month = 30 * 24 * 60 * 60;
+    const week = 7 * 24 * 60 * 60;
+    const ethAmount = parseEther(`${amount}`);
+    await contract.registerProject(owner.address, token.address, [
+      { isActive: true, amount: ethAmount, period: month },
+      { isActive: true, amount: ethAmount.mul(2), period: month },
+      { isActive: true, amount: ethAmount.mul(3), period: month },
+    ]);
+    const projectId = 0;
+
+    await token.mint(user.address, ethAmount);
+    await token.connect(user).approve(contract.address, ethAmount.div(3));
+    await token.connect(user2).approve(contract.address, ethAmount.div(3));
+
+    const firstTierIndex = 0;
+    await contract.connect(user).subscribe(projectId, firstTierIndex);
+    await contract.connect(user2).subscribe(projectId, firstTierIndex);
+
+    const secondTierIndex = 1;
+    await contract.connect(user).subscribe(projectId, secondTierIndex);
+
+    await utils.fastForward(week);
+    await contract.claim(projectId);
+
+    await utils.fastForward(week);
+    await contract.claim(projectId);
   });
 });
