@@ -39,7 +39,7 @@ const coinbaseWalletSdk = coinbaseWalletModule({ darkMode: true });
 const gnosis = gnosisModule();
 const walletConnect = walletConnectModule();
 
-const chains = [
+export const chains = [
   /*{
     id: '0x1', // chain ID must be in hexadecimel
     token: 'ETH', // main chain token
@@ -61,7 +61,7 @@ const chains = [
   {
     id: '0x13881',
     token: 'MATIC',
-    label: 'Mumbai',
+    label: 'PolygonMumbai',
     rpcUrl: providersConfig[provider]['mumbai']['URL'],
   },
 ];

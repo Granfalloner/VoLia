@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import projectsData from '../projects-data';
 import { useParams } from 'react-router-dom';
@@ -12,6 +13,7 @@ const { parseUnits, formatUnits } = ethers.utils;
 const MAX_PERIODS = 12;
 
 const isSupportedChain = (wallet) => {
+  if (!wallet) return undefined;
   return Crypto.chains.map((ch) => ch.id).includes(wallet.chains[0].id);
 };
 
@@ -169,6 +171,7 @@ const Flow = ({
 };
 
 const Tier = ({
+  wrongChain,
   projectId,
   tier,
   wallet,
@@ -187,7 +190,8 @@ const Tier = ({
   const { name, amount, currency, period } = tier;
 
   const initSubStatus = async () => {
-    if (wallet && contract && tier && isSupportedChain(wallet)) {
+    console.log(wrongChain);
+    if (wallet && contract && tier && !wrongChain) {
       const { address } = wallet.accounts[0];
 
       console.log(projectId, tier.tierIndex, address);
@@ -210,7 +214,7 @@ const Tier = ({
 
   useEffect(() => {
     initSubStatus();
-  }, [wallet, contract, tier]);
+  }, [wallet, contract, tier, wrongChain]);
 
   const unsubscribe = async () => {
     const { address } = wallet.accounts[0];
@@ -331,6 +335,7 @@ const Project = (props) => {
   const [tokenDecimals, setTokenDecimals] = useState(undefined);
   const [signer, setSigner] = useState(undefined);
   const [claimData, setClaimData] = useState(undefined);
+  const [wrongChain, setWrongChain] = useState(undefined);
 
   const currentAddress = wallet?.accounts[0].address;
 
@@ -345,8 +350,14 @@ const Project = (props) => {
   }, []);
 
   useEffect(() => {
+    if (isSupportedChain(wallet) == false) {
+      setWrongChain(true);
+    }
+  }, [wallet]);
+
+  useEffect(() => {
     const init = async () => {
-      if (wallet) {
+      if (wallet && !wrongChain) {
         const provider = new ethers.providers.Web3Provider(
           wallet.provider,
           'any'
@@ -401,7 +412,7 @@ const Project = (props) => {
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
 
   useEffect(() => {
-    if (wallet && contract && isProjectOwner && isSupportedChain(wallet)) {
+    if (wallet && contract && isProjectOwner && !wrongChain) {
       loadClaimAmount();
     }
   }, [wallet, contract, claimAddress]);
@@ -436,8 +447,11 @@ const Project = (props) => {
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
 
-      {!isSupportedChain(wallet) && (
-        <div className="alert alert-warning shadow-lg">
+      {wallet && wrongChain == true && (
+        <div
+          className="alert alert-warning shadow-lg mt-5 w-full m-auto"
+          style={{ maxWidth: '1000px' }}
+        >
           <div>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -446,9 +460,9 @@ const Project = (props) => {
               viewBox="0 0 24 24"
             >
               <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
@@ -456,9 +470,10 @@ const Project = (props) => {
               Warning: Switch to a Supported Network:{' '}
               {Crypto.chains.map((ch) => (
                 <button
-                  className="btn-link"
-                  onClick={() => {
-                    await onboard.setChain({ chainId: ch.id });
+                  key={ch.id}
+                  className="btn-link mr-2"
+                  onClick={async () => {
+                    await Crypto.onboard.setChain({ chainId: ch.id });
                   }}
                 >
                   {ch.label}
@@ -490,7 +505,7 @@ const Project = (props) => {
                 <div className="text-gray-500">{address}</div>
               </div>
 
-              {isProjectOwner && (
+              {wallet && isProjectOwner && (
                 <div className="flex-end mt-4">
                   <span className="font-bold text-sm pr-4">
                     {claimData || 'Loading..'}
@@ -522,6 +537,7 @@ const Project = (props) => {
         <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier, index) => (
             <Tier
+              wrongChain={wrongChain}
               contract={contract}
               token={token}
               tokenDecimals={tokenDecimals}
