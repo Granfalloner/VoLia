@@ -9,7 +9,7 @@ import ERC20Abi from '../abi/ERC20Abi.json';
 import { config } from '../config';
 const { parseUnits, formatUnits } = ethers.utils;
 
-const MAX_PERIODS = 3;
+const MAX_PERIODS = 12;
 
 const Flow = ({
   projectId,
