@@ -171,7 +171,7 @@ const Flow = ({
 };
 
 const Tier = ({
-  wrongChain,
+  correctChain,
   projectId,
   tier,
   wallet,
@@ -213,8 +213,8 @@ const Tier = ({
   };
 
   useEffect(() => {
-    if (!wrongChain) initSubStatus();
-  }, [wallet, contract, tier, wrongChain]);
+    if (correctChain) initSubStatus();
+  }, [wallet, contract, tier, correctChain]);
 
   const unsubscribe = async () => {
     const { address } = wallet.accounts[0];
@@ -335,7 +335,7 @@ const Project = (props) => {
   const [tokenDecimals, setTokenDecimals] = useState(undefined);
   const [signer, setSigner] = useState(undefined);
   const [claimData, setClaimData] = useState(undefined);
-  const [wrongChain, setWrongChain] = useState(undefined);
+  const [correctChain, setCorrectChain] = useState(undefined);
 
   const currentAddress = wallet?.accounts[0].address;
 
@@ -350,14 +350,12 @@ const Project = (props) => {
   }, []);
 
   useEffect(() => {
-    if (isSupportedChain(wallet) == false) {
-      setWrongChain(true);
-    }
+    setCorrectChain(isSupportedChain(wallet));
   }, [wallet]);
 
   useEffect(() => {
     const init = async () => {
-      if (wallet && wrongChain == false) {
+      if (wallet && correctChain) {
         const provider = new ethers.providers.Web3Provider(
           wallet.provider,
           'any'
@@ -406,13 +404,13 @@ const Project = (props) => {
       }
     };
     init();
-  }, [wallet, wrongChain]);
+  }, [wallet, correctChain]);
 
   const isProjectOwner =
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
 
   useEffect(() => {
-    if (wallet && contract && isProjectOwner && !wrongChain) {
+    if (wallet && contract && isProjectOwner && correctChain) {
       loadClaimAmount();
     }
   }, [wallet, contract, claimAddress]);
@@ -447,7 +445,7 @@ const Project = (props) => {
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
 
-      {wallet && wrongChain == true && (
+      {wallet && correctChain == false && (
         <div
           className="alert alert-warning shadow-lg mt-5 w-full m-auto"
           style={{ maxWidth: '1000px' }}
@@ -474,7 +472,7 @@ const Project = (props) => {
                   className="btn-link mr-2"
                   onClick={async () => {
                     await Crypto.onboard.setChain({ chainId: ch.id });
-                    setWrongChain(isSupportedChain(wallet));
+                    setCorrectChain(isSupportedChain(wallet));
                   }}
                 >
                   {ch.label}
@@ -538,7 +536,7 @@ const Project = (props) => {
         <div className="container-lg mx-12 my-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {tiers.map((tier, index) => (
             <Tier
-              wrongChain={wrongChain}
+              correctChain={correctChain}
               contract={contract}
               token={token}
               tokenDecimals={tokenDecimals}
