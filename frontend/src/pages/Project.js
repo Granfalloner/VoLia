@@ -213,7 +213,7 @@ const Tier = ({
   };
 
   useEffect(() => {
-    if (!wrongChain) initSubStatus();
+    if (wrongChain == false) initSubStatus();
   }, [wallet, contract, tier, wrongChain]);
 
   const unsubscribe = async () => {
@@ -357,7 +357,7 @@ const Project = (props) => {
 
   useEffect(() => {
     const init = async () => {
-      if (wallet && !wrongChain) {
+      if (wallet && wrongChain == false) {
         const provider = new ethers.providers.Web3Provider(
           wallet.provider,
           'any'
@@ -412,10 +412,10 @@ const Project = (props) => {
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
 
   useEffect(() => {
-    if (wallet && contract && isProjectOwner && !wrongChain) {
+    if (wallet && contract && isProjectOwner && wrongChain == false) {
       loadClaimAmount();
     }
-  }, [wallet, contract, claimAddress]);
+  }, [wallet, contract, claimAddress, wrongChain]);
 
   const loadClaimAmount = async () => {
     try {
