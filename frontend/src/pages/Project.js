@@ -357,7 +357,7 @@ const Project = (props) => {
 
   useEffect(() => {
     const init = async () => {
-      if (wallet && !wrongChain) {
+      if (wallet && wrongChain == false) {
         const provider = new ethers.providers.Web3Provider(
           wallet.provider,
           'any'
@@ -406,7 +406,7 @@ const Project = (props) => {
       }
     };
     init();
-  }, [wallet]);
+  }, [wallet, wron]);
 
   const isProjectOwner =
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
