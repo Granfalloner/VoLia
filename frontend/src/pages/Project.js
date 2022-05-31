@@ -213,7 +213,7 @@ const Tier = ({
   };
 
   useEffect(() => {
-    if (wrongChain == false) initSubStatus();
+    if (!wrongChain) initSubStatus();
   }, [wallet, contract, tier, wrongChain]);
 
   const unsubscribe = async () => {
@@ -357,7 +357,7 @@ const Project = (props) => {
 
   useEffect(() => {
     const init = async () => {
-      if (wallet && wrongChain == false) {
+      if (wallet && !wrongChain) {
         const provider = new ethers.providers.Web3Provider(
           wallet.provider,
           'any'
@@ -412,10 +412,10 @@ const Project = (props) => {
     currentAddress?.toLowerCase() == claimAddress?.toLowerCase();
 
   useEffect(() => {
-    if (wallet && contract && isProjectOwner && wrongChain == false) {
+    if (wallet && contract && isProjectOwner && !wrongChain) {
       loadClaimAmount();
     }
-  }, [wallet, contract, claimAddress, wrongChain]);
+  }, [wallet, contract, claimAddress]);
 
   const loadClaimAmount = async () => {
     try {
@@ -474,6 +474,7 @@ const Project = (props) => {
                   className="btn-link mr-2"
                   onClick={async () => {
                     await Crypto.onboard.setChain({ chainId: ch.id });
+                    setWrongChain(isSupportedChain(wallet));
                   }}
                 >
                   {ch.label}
