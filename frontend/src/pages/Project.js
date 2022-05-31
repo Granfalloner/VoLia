@@ -190,8 +190,7 @@ const Tier = ({
   const { name, amount, currency, period } = tier;
 
   const initSubStatus = async () => {
-    console.log(wrongChain);
-    if (wallet && contract && tier && !wrongChain) {
+    if (wallet && contract && tier) {
       const { address } = wallet.accounts[0];
 
       console.log(projectId, tier.tierIndex, address);
@@ -201,6 +200,7 @@ const Tier = ({
         tier.tierIndex,
         address
       );
+      console.log('isSub', isSub);
 
       const numSub = await contract.numberOfSubscribersInTier(
         projectId,
@@ -213,7 +213,7 @@ const Tier = ({
   };
 
   useEffect(() => {
-    initSubStatus();
+    if (!wrongChain) initSubStatus();
   }, [wallet, contract, tier, wrongChain]);
 
   const unsubscribe = async () => {
@@ -237,8 +237,8 @@ const Tier = ({
     }
 
     setPendingTx(tx.hash);
-    tx.wait().then(() => {
-      initSubStatus();
+    tx.wait(6).then(async () => {
+      await initSubStatus();
       setPendingTx(undefined);
     });
     return tx;
@@ -246,8 +246,8 @@ const Tier = ({
 
   const onSubscribe = async (tx) => {
     setPendingTx(tx.hash);
-    tx.wait().then(() => {
-      initSubStatus();
+    tx.wait(6).then(async () => {
+      await initSubStatus();
       setPendingTx(undefined);
     });
   };
