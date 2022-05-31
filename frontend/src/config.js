@@ -9,6 +9,11 @@ export const config = {
     ContractAddress: '???',
     USDCAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   },
+  '0x89': {
+    // polygon
+    ContractAddress: '0x8ffd884a50dE7Be91916204f97a809F41761D228',
+    USDCAddress: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+  },
   '0x13881': {
     // mumbai
     ContractAddress: '0xBda94cE95f74bb6338743f23185D915BBD367D5B',

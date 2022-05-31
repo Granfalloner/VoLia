@@ -18,6 +18,9 @@ const providersConfig = {
     mumbai: {
       URL: 'https://polygon-mumbai.g.alchemy.com/v2/Omk4TvEUaQ6m5EzeIT-5ZHJcYIyxbZvT',
     },
+    polygon: {
+      URL: 'https://polygon-mainnet.g.alchemy.com/v2/hZEjjMbAlUpHO5PWLDrfCl_ba6a3ZTWi',
+    },
   },
   infura: {
     mainnet: {
@@ -52,6 +55,12 @@ export const onboard = Onboard({
       rpcUrl: providersConfig[provider]['rinkeby']['URL'],
     },*/
     {
+      id: '0x89',
+      token: 'MATIC',
+      label: 'Polygon',
+      rpcUrl: providersConfig[provider]['polygon']['URL'],
+    },
+    {
       id: '0x13881',
       token: 'MATIC',
       label: 'Mumbai',
@@ -63,12 +72,10 @@ export const onboard = Onboard({
     icon: logo,
     logo: logo,
     description: 'Provide volunteers with regular CRYPTO donation',
-    /*
     recommendedInjectedWallets: [
       { name: 'Coinbase', url: 'https://wallet.coinbase.com/' },
       { name: 'MetaMask', url: 'https://metamask.io' },
     ],
-    */
   },
 });
 
