@@ -114,6 +114,12 @@ contract Samsara is Ownable {
     }
   }
 
+  function changeProjectClaimAddress(uint256 projectId, address newClaimAddress) public onlyOwner {
+    Project storage project = projects[projectId];
+    require(project.isActive, 'Project is not active'); 
+    project.claimAddress = newClaimAddress;
+  }
+
   function changeProjectFee(uint256 projectId, uint16 fee) public onlyOwner {
     Project storage project = projects[projectId];
     require(project.isActive, 'Project is not active');
