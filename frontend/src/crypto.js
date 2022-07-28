@@ -40,18 +40,18 @@ const gnosis = gnosisModule();
 const walletConnect = walletConnectModule();
 
 export const chains = [
-  /*{
+  {
     id: '0x1', // chain ID must be in hexadecimel
     token: 'ETH', // main chain token
     label: 'Ethereum Mainnet',
     rpcUrl: providersConfig[provider]['mainnet']['URL'], // rpcURL required for wallet balances
   },
-  {
+  /*{
     id: '0x4',
     token: 'rETH',
     label: 'Ethereum Rinkeby Testnet',
     rpcUrl: providersConfig[provider]['rinkeby']['URL'],
-  },*/
+  },
   {
     id: '0x89',
     token: 'MATIC',
@@ -64,6 +64,7 @@ export const chains = [
     label: 'PolygonMumbai',
     rpcUrl: providersConfig[provider]['mumbai']['URL'],
   },
+  */
 ];
 
 export const onboard = Onboard({

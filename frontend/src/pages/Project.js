@@ -50,11 +50,7 @@ const Flow = ({
           if (allowance.gte(requiredAllowance)) {
             setStep(3);
           }
-          setBalance(
-            formatUnits(await token.balanceOf(address), tokenDecimals) +
-              ' ' +
-              currency
-          );
+          setBalance(formatUnits(await token.balanceOf(address), tokenDecimals))
         }
       } else {
         setStep(1);
@@ -100,14 +96,14 @@ const Flow = ({
       cls += ' step-primary';
     }
     if (step == position) {
-      cls += ' step-secondary';
+      cls += ' step-primary';
     }
     return cls;
   };
 
   return (
     <div className={`modal ${open ? 'modal-open' : ''}`} style={{ zIndex: 5 }}>
-      <div className="modal-box relative">
+      <div className="modal-box relative text-center">
         <label
           htmlFor="my-modal-3"
           onClick={() => {
@@ -121,46 +117,65 @@ const Flow = ({
           {name} - {amount} {currency} / {period}
         </h2>
         <div>
-          <ul className="steps">
+          <ul className="steps m-auto">
             <li className={getStepClasses(step, 1)}>Connect Wallet</li>
             <li className={getStepClasses(step, 2)}>Approve Allowance</li>
             <li className={getStepClasses(step, 3)}>Subscribe</li>
           </ul>
 
-          <div className="mt-16 mb-6 text-center">
+          <div className="mt-5 mb-6 text-center">
             {step == 1 && (
-              <button
-                className="btn"
-                onClick={() => {
-                  onConnectWallet();
-                }}
-              >
-                Connect Wallet
-              </button>
+              <div>
+                <div className="bg-slate-100 p-8 rounded mb-5">
+                After pressing the button Connect Wallet, confirm this action in your wallet, e.g Metamask.
+                </div>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    onConnectWallet();
+                  }}
+                >
+                  Connect Wallet
+                </button>
+              </div>
             )}
             {step == 2 && (
-              <button
-                className="btn"
-                onClick={() => {
-                  waitNextStep(approveAllowance(amount));
-                }}
-              >
-                Approve Allowance
-              </button>
+              <div>
+                <div className="bg-slate-100 p-8 rounded mb-5">
+                In order to charge you {amount} {currency} per {period} we will ask you for an allowance 
+                for the smart contract to use funds for {MAX_PERIODS} {period}s.
+                The approval amount is {Math.round(MAX_PERIODS * amount)} {currency}. 
+                </div>
+ 
+                <button
+                  className="btn"
+                  onClick={() => {
+                    waitNextStep(approveAllowance(amount));
+                  }}
+                >
+                  Approve Allowance
+                </button>
+              </div>
             )}
             {step == 3 && (
               <div>
+                <div className="bg-slate-100 p-8 rounded mb-5">
+                  We will try to charge you {amount} {currency} every {period}. If there is not enough balance we will automatically unsubscribe you.
+                  <br/>
+                  Your current balance is <span className={balance > amount ? 'text-success' : 'text-error'}>{balance} {currency}</span>.
+                  Make sure you have enough funds in your wallet each {period}
+               </div>
+ 
                 <button
-                  className="btn"
+                  className={`btn ${balance < amount && 'btn-disabled'}`}
                   onClick={() => {
                     waitNextStep(subscribe(projectId, tierIndex));
                   }}
                 >
                   Subscribe ({amount} {currency} / {period})
                 </button>
-                <div className="text-center text-sm text-gray">
-                  Balance: {balance}
-                </div>
+                <br/>
+                {balance < amount && (<span className="mt-5 text-error">Add at least {amount - balance} {currency.toUpperCase()} to your crypto wallet</span>)}
               </div>
             )}
           </div>
