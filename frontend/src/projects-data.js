@@ -111,7 +111,7 @@ const PROJECTS = [
     title: 'Bulletproof Ukraine',
     address: 'Ukraine',
     ethAddress: '0x68d7F121739311f5d7e50446be6764eec60f324B',
-    customColor: '#3130EE',
+    customColor: '#9898FC',
     tiers: [
       {
         name: 'Basic',
