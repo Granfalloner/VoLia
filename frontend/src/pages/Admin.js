@@ -5,6 +5,7 @@ import * as Crypto from '../crypto.js';
 import ContractAbi from '../abi/ContractAbi.json';
 import { config } from '../config';
 const { parseUnits, formatUnits } = ethers.utils;
+import projectsData from '../projects-data';
 
 const Admin = (props) => {
   const [wallet, setWallet] = useState(undefined);
@@ -66,6 +67,21 @@ const Admin = (props) => {
     <div>
       <Header wallet={wallet} connectWallet={onConnectWallet} />
       <div className="text-center">
+        <br />
+        {projectsData.map(({ title, ethAddress, tiers, projectId }) => (
+          <button
+            className="btn btn-sm"
+            onClick={() => {
+              setAddress(ethAddress);
+              setPrice1(tiers[0].amount);
+              setPrice2(tiers[1].amount);
+              setPrice3(tiers[2].amount);
+            }}
+          >
+            {title} ({projectId})
+          </button>
+        ))}
+        <br />
         <label htmlFor="address">Receiver of funds:</label>
         <input
           id="address"
@@ -82,7 +98,7 @@ const Admin = (props) => {
           type="number"
           value={price1}
           onChange={(e) => {
-            setPrice1(e.value);
+            setPrice1(e.target.value);
           }}
           placeholder="Price 1"
           className="input "
@@ -91,7 +107,7 @@ const Admin = (props) => {
           type="number"
           value={price2}
           onChange={(e) => {
-            setPrice2(e.value);
+            setPrice2(e.target.value);
           }}
           placeholder="Price 2"
           className="input "
@@ -100,7 +116,7 @@ const Admin = (props) => {
           type="number"
           value={price3}
           onChange={(e) => {
-            setPrice3(e.value);
+            setPrice3(e.target.value);
           }}
           placeholder="Price 3"
           className="input "
