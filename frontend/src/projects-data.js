@@ -142,6 +142,41 @@ const PROJECTS = [
     description:
       'We are non-profit volunteers team that manufactures bulletproof vests for civilians and soldiers in Ukraine. Founded in March 2022. Our mission is to supply civilians and soldiers with bulletproof vests of the 5th protection as cheap as possible. More than 500 bulletproof vests were already produced and distributed to protect people. Our next target is to produce 250 vests and give them out for free.',
   },  
+  {
+    projectId: 3,
+    title: 'Kalinovsky Regiment',
+    address: 'Ukraine',
+    ethAddress: '0xFA6d23075f5E9d4da158BdfE1F991667b49bf64a',
+    tiers: [
+      {
+        name: 'Supporter',
+        currency: 'usdc',
+        amount: 50,
+        period: 'month',
+        tokenId: 1,
+        tierIndex: 0,
+      },
+      {
+        name: 'UAV framework',
+        currency: 'usdc',
+        amount: 200,
+        period: 'month',
+        tokenId: 1,
+        tierIndex: 1,
+      },
+      {
+        name: 'Complete UAV',
+        currency: 'usdc',
+        amount: 500,
+        period: 'month',
+        tokenId: 1,
+        tierIndex: 2,
+      },
+    ],
+    image: '/projects/Kalinovsky Regiment.jpg',
+    description:
+      'Hi, we are fighters of the Kalinovsky Regiment, we have developed an UAV with autonomous navigation, now we are raising money for small-scale production',
+  },    
 ];
 
 export default PROJECTS;
