@@ -106,6 +106,41 @@ const PROJECTS = [
     description:
       'I am the former owner of the travel agency “Friends”. Currently, I’m a volunteer. I’m helping our military guys with all what they’re asking me for. ​​ My approach is to announce a very particular fundraise for 1-2 days to buy one thing, for example a military off-road car. Once we did it, I publish a report about a purchase and start a new fundraising. For me, it’s very crucial in terms of fundraising to know soldiers in person or if my friends know them, so we can help real particular people. Secondly, I must be sure that what we bought is really in place and doing its work (shooting, flying etc), and not is being resold on a secondary market. Over 400,000 dollars have been collected in 80 days. ',
   },
+  {
+    projectId: 3,
+    title: 'Bulletproof Ukraine',
+    address: 'Ukraine',
+    ethAddress: '0x68d7F121739311f5d7e50446be6764eec60f324B',
+    tiers: [
+      {
+        name: 'Basic',
+        currency: 'usdc',
+        amount: 20,
+        period: 'month',
+        tokenId: 1,
+        tierIndex: 0,
+      },
+      {
+        name: 'One ballistic plate',
+        currency: 'usdc',
+        amount: 70,
+        period: 'month',
+        tokenId: 1,
+        tierIndex: 1,
+      },
+      {
+        name: 'Full bulletproof vest',
+        currency: 'usdc',
+        amount: 320,
+        period: 'month',
+        tokenId: 1,
+        tierIndex: 2,
+      },
+    ],
+    image: '/projects/Bulletproof Ukraine.jpg',
+    description:
+      'We are non-profit volunteers team that manufactures bulletproof vests for civilians and soldiers in Ukraine. Founded in March 2022. Our mission is to supply civilians and soldiers with bulletproof vests of the 5th protection as cheap as possible. More than 500 bulletproof vests were already produced and distributed to protect people. Our next target is to produce 250 vests and give them out for free.',
+  },  
 ];
 
 export default PROJECTS;
