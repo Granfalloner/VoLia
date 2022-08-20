@@ -275,7 +275,6 @@ const Tier = ({
         </h2>
         <div
           className="text-center text-neutral mb-2 mt-0"
-          style={customColor && { color: 'black' }}
         >
           {amount} {currency} / {period}
         </div>
@@ -295,13 +294,6 @@ const Tier = ({
               }}
               disabled={!!pendingTx}
               className="btn w-full hover-btn"
-              style={
-                customColor && {
-                  backgroundColor: customColor,
-                  color: 'black',
-                  border: 'none',
-                }
-              }
             >
               Subscribe
             </button>
