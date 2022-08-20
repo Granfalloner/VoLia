@@ -86,7 +86,11 @@ const Flow = ({
       const tx = await promise;
       setStep(step + 1);
     } catch (error) {
-      alert(JSON.stringify(error));
+      if (error.code === 4001) {
+        alert('You have cancelled the transaction')
+      } else {
+        alert(JSON.stringify(error));
+      }
     }
   };
 
