@@ -28,11 +28,14 @@ const Banner = () => (
 );
 
 const Project = ({ title, description, projectId, image }) => {
-  const navigate = useNavigate();
+  // TODO: use @web3-onboard/react or custom hook for onboard integration
+  // Till that time we need to force reload pages to prevent 
+  // double init of onBoard instance
+  //const navigate = useNavigate();
 
   return (
     <div 
-      onClick={()=>{navigate(`/project/${projectId}`)}}
+      onClick={()=>{window.location.href=`/project/${projectId}`}}
         className="card card-normal m-w-80 w-80 bg-base-100 shadow-xl flex-auto max-h-96 m-auto cursor-pointer">
       <div className="card-body">
         <div className="avatar">
